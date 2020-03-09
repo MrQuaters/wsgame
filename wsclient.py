@@ -46,8 +46,7 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         try:
             data = await websocket.receive_text()
-            print(data)
-            await websocket.send_text(data)
+            
         except BaseException:
             try:
                 await websocket.close()
