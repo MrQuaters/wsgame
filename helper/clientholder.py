@@ -1,3 +1,7 @@
+from typing import  Optional
+from fastapi import WebSocket
+
+
 class ClientHolder:
     def __init__(self):
         self._clients = {}
@@ -29,3 +33,6 @@ class ClientHolder:
         self._clients_to_add.clear()
         self._clients_ids = self._clients.keys()
         self._changed = False
+
+    def client_get(self, cid) -> Optional[WebSocket]:
+        return self._clients.get(cid)

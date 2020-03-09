@@ -1,3 +1,6 @@
+from gamelogic.parcer import Parser
+
+
 class Game:
     def __init__(self):
         pass
@@ -6,3 +9,4 @@ class Game:
         to = ["cli"]
         retmsg = msg
         return to, retmsg
+
