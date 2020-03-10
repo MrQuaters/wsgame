@@ -1,11 +1,21 @@
 from __future__ import annotations
 import aioredis
-import servicecommunicator
+from game import servicecommunicator
 from typing import Optional
 
 
-class AsyncServiceCommunicator:
+class BaseAsyncServiceCommunicator:
+    async def listen_for_clients(self, cli, timeout) -> Optional[tuple]:
+        pass
 
+    async def push_in_work_channel(self, msg) -> None:
+        pass
+
+    async def pull_from_work_channel(self, timeout) -> Optional[tuple]:
+        pass
+
+
+class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
     async def start(self):
         self.re = await aioredis.create_redis(servicecommunicator.REDIS_ADDRESS, encoding='UTF-8', db=0)
         self.iscon = True
@@ -17,7 +27,11 @@ class AsyncServiceCommunicator:
         await self.re.rpush(servicecommunicator.WORKERS_CHANNEL, msg)
 
     async def pull_from_work_channel(self, timeout) -> Optional[tuple]:
-        return await self.re.blpop(servicecommunicator.WORKERS_CHANNEL, timeout=timeout)
+        t = await self.re.blpop(servicecommunicator.WORKERS_CHANNEL, timeout=timeout)
+        if t is not None:
+            t[0] = t[0].decode('UTF-8')
+            t[1] = t[1].decode('UTF-8')
+        return t
 
 
 class CallFunc:

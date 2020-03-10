@@ -2,7 +2,24 @@ from typing import  Optional
 from fastapi import WebSocket
 
 
-class ClientHolder:
+class BaseClientHolder:
+    def get_clients_ids(self) -> []:
+        pass
+
+    def task_to_add_client(self, cli, data) -> None:
+        pass
+
+    def task_to_del_client(self, cli)-> None:
+        pass
+
+    def apply_changes(self) -> None:
+        pass
+
+    def client_get(self, cid):
+        pass
+
+
+class ClientHolder(BaseClientHolder):
     def __init__(self):
         self._clients = {}
         self._clients_ids = []
@@ -13,25 +30,28 @@ class ClientHolder:
     def get_clients_ids(self) -> []:
         return self._clients_ids[:]
 
-    def task_to_add_client(self, cli, data):
+    def task_to_add_client(self, cli, data) -> None:
         self._clients_to_add[cli] = data
         self._changed = True
 
-    def task_to_del_client(self, cli):
+    def task_to_del_client(self, cli) -> None:
         self._clients_to_del.append(cli)
         self._changed = True
 
-    def apply_changes(self):
+    def apply_changes(self) -> None:
         if not self._changed:
             return
 
         for cli in self._clients_to_del:
             self._clients.pop(cli, None)
         self._clients_to_del.clear()
-        for cli, val in self._clients_to_add:
+        for cli, val in self._clients_to_add.items():
             self._clients[cli] = val
         self._clients_to_add.clear()
-        self._clients_ids = self._clients.keys()
+        self._clients_ids.clear()
+        for key in self._clients:
+            self._clients_ids.append(key)
+
         self._changed = False
 
     def client_get(self, cid) -> Optional[WebSocket]:

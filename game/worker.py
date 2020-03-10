@@ -1,6 +1,6 @@
 import redis
-from gamelogic import Game
-from gamelogic import gameconstants
+from game.gamelogic import Game
+from game.gamelogic import gameconstants
 
 MAX_QUEUE_LENGTH = 4
 
