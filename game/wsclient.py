@@ -5,7 +5,6 @@ from fastapi.responses import HTMLResponse
 from game.servicecommunicator.asynccom import BaseAsyncServiceCommunicator, SafeInit
 from game.helper.clientholder import BaseClientHolder
 from game.gamelogic.parcer import BaseParser
-import uvloop
 
 
 class WsClientHandler:
@@ -67,11 +66,12 @@ class WsClientHandler:
     async def _set_out_message_handler(self):
         while True:
             self._clients.apply_changes()
-            if len(self._clients.get_clients_ids()) == 0:
+            idlist = self._clients.get_clients_ids()
+            if len(idlist) == 0:
                 await asyncio.sleep(1)
                 continue
 
-            userd = await self._re.listen_for_clients(self._clients.get_clients_ids(), 1)
+            userd = await self._re.listen_for_clients(idlist, 1)
             if userd is not None:
                 cli_ws = self._clients.client_get(userd[0])
                 if cli_ws is not None:
