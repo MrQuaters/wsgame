@@ -42,12 +42,12 @@ class ClientHolder(BaseClientHolder):
         if not self._changed:
             return
 
-        for cli in self._clients_to_del:
-            self._clients.pop(cli, None)
-        self._clients_to_del.clear()
         for cli, val in self._clients_to_add.items():
             self._clients[cli] = val
         self._clients_to_add.clear()
+        for cli in self._clients_to_del:
+            self._clients.pop(cli, None)
+        self._clients_to_del.clear()
         self._clients_ids.clear()
         for key in self._clients:
             self._clients_ids.append(key)

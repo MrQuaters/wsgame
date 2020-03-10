@@ -56,7 +56,7 @@ class WsClientHandler:
                     data = await websocket.receive_text()
                     await self._re.push_in_work_channel(self._parser.parse_in(uid, uroom, data))
                 except BaseException:
-                    self._clients.task_to_del_client(id)
+                    self._clients.task_to_del_client(uid)
                     try:
                         await websocket.close()
                     except BaseException:
