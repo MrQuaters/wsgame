@@ -1,11 +1,10 @@
 import redis
-from game.gamelogic import Game
 from game.gamelogic import gameconstants
 
 MAX_QUEUE_LENGTH = 4
 
 re = redis.Redis(host="localhost", port=6379, db=0)
-game = Game()
+
 
 while True:
     ch, msg = re.blpop(
@@ -14,7 +13,8 @@ while True:
 
     nmsg = msg.decode("UTF-8")
     ch = ch.decode("UTF-8")
-
+    print(ch, msg)
+'''
     if ch == gameconstants.CHANNEL_TO_END:
         break
 
@@ -29,3 +29,4 @@ while True:
             re.rpush(address, gameconstants.GET_FULL_GAME_STATE)
         else:
             pass
+'''

@@ -1,15 +1,14 @@
-from game.wsclient import WsClientHandler
-from game.servicecommunicator.asynccom import AsyncServiceCommunicator
-from game.gamelogic.parcer import Parser
-from game.helper.clientholder import ClientHolder
 import uvloop
 import asyncio
+from game.backend import set_out_message_handler
+from uvicorn import Server, Config
+from game.views import app
 
 
 if __name__ == "__main__":
     loop = uvloop.new_event_loop()
     asyncio.set_event_loop(loop)
-    a = WsClientHandler(
-        "127.0.0.1", 8083, ClientHolder(), AsyncServiceCommunicator(), loop, Parser(), docs_url=None, redoc_url=None
-    )
-    a.run()
+    loop.create_task(set_out_message_handler())  # task for worker listener loop
+    config = Config(app=app, host="127.0.0.1", port=8083)
+    server = Server(config)
+    loop.run_until_complete(server.serve())  # run server loop

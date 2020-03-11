@@ -1,4 +1,4 @@
-from typing import  Optional
+from typing import Optional, List
 from fastapi import WebSocket
 
 
@@ -27,7 +27,7 @@ class ClientHolder(BaseClientHolder):
         self._clients_to_add = {}
         self._changed = False
 
-    def get_clients_ids(self) -> []:
+    def get_clients_ids(self) -> List:
         return self._clients_ids[:]
 
     def task_to_add_client(self, cli, data) -> None:
@@ -56,3 +56,13 @@ class ClientHolder(BaseClientHolder):
 
     def client_get(self, cid) -> Optional[WebSocket]:
         return self._clients.get(cid)
+
+
+class SingletonClientHolder:
+    __isinstance = None
+
+    @classmethod
+    def get_client_holder(cls) -> ClientHolder:
+        if SingletonClientHolder.__isinstance is None:
+            SingletonClientHolder.__isinstance = ClientHolder()
+        return SingletonClientHolder.__isinstance
