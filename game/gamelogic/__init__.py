@@ -1,6 +1,3 @@
-from gamelogic.parcer import Parser
-
-
 class Game:
     def __init__(self):
         pass

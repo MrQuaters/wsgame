@@ -1,24 +1,57 @@
 from __future__ import annotations
 import aioredis
-import servicecommunicator
+import asyncio
+
 from typing import Optional
 
 
-class AsyncServiceCommunicator:
+WORKERS_CHANNEL = "workchannel"
+SAFE_OFF_WORKERS = "endchannel"
+REDIS_ADDRESS = "redis://localhost"
+
+
+class BaseAsyncServiceCommunicator:
+    async def listen_for_clients(self, cli, timeout) -> Optional[tuple]:
+        pass
+
+    async def push_in_work_channel(self, msg) -> None:
+        pass
+
+    async def pull_from_work_channel(self, timeout) -> Optional[tuple]:
+        pass
+
+
+class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
+    def __init__(self):
+        self.iscon = False
 
     async def start(self):
-        self.re = await aioredis.create_redis(servicecommunicator.REDIS_ADDRESS, encoding='UTF-8', db=0)
-        self.iscon = True
+        if not self.iscon:
+            self.re = await aioredis.create_redis(REDIS_ADDRESS, encoding='UTF-8', db=0)
+            self.iscon = True
 
     async def listen_for_clients(self, cli, timeout) -> Optional[tuple]:
         return await self.re.blpop(*cli, timeout=timeout)
 
     async def push_in_work_channel(self, msg) -> None:
-        await self.re.rpush(servicecommunicator.WORKERS_CHANNEL, msg)
+        await self.re.rpush(WORKERS_CHANNEL, msg)
 
     async def pull_from_work_channel(self, timeout) -> Optional[tuple]:
-        return await self.re.blpop(servicecommunicator.WORKERS_CHANNEL, timeout=timeout)
+        return await self.re.blpop(WORKERS_CHANNEL, timeout=timeout)
 
+
+class SingletonAsyncServerCommunicator():
+    __instanced = None
+    @classmethod
+    async def get_communicator(cls) -> AsyncServiceCommunicator:
+        if SingletonAsyncServerCommunicator.__instanced is None:
+            SingletonAsyncServerCommunicator.__instanced = AsyncServiceCommunicator()
+            await SingletonAsyncServerCommunicator.__instanced.start()
+        else:
+            while not SingletonAsyncServerCommunicator.__instanced.iscon:
+                await asyncio.sleep(0.1)
+
+        return SingletonAsyncServerCommunicator.__instanced
 
 class CallFunc:
     def __init__(self, fun, *args, **kwargs):
@@ -58,3 +91,6 @@ class SafeInit:
     def loop_run_forever(self, loop):
         loop.create_task(self._runblock(loop))
         loop.run_forever()
+
+
+
