@@ -33,7 +33,6 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     hid = websocket.headers.get("ID_FROM_COOKIE")
     hroom = websocket.headers.get("ROOM_FROM_COOKIE")
-
     if hid is None or hroom is None:
         try:
             await websocket.close()

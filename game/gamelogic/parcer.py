@@ -1,5 +1,6 @@
 import json
 
+
 class BaseParser:
 
     def parse_in(self, msg):
@@ -22,3 +23,9 @@ class Parser(BaseParser):
 
     def parse_out(self, msg):
         return msg
+
+
+class WorkerParser(BaseParser):
+    def parse_in(self, msg):
+        a = json.loads(msg)
+        return a.pop("action", None), a.pop("us_id", None), a.pop("us_room", None), a
