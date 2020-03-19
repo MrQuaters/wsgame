@@ -9,6 +9,9 @@ class BaseParser:
     def parse_out(self, msg):
         pass
 
+    def create_room_name(self, room):
+        return "rmn"+str(room)
+
 
 class Parser(BaseParser):
     def parse_in_dec(self, uid, room, msg):

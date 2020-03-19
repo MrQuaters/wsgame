@@ -1,38 +1,7 @@
-from game.servicecommunicator.synccom import SyncServiceCommunicator, SingletonServiceCommunicator
+from game.servicecommunicator.synccom import SyncServiceCommunicator
 from game.servicecommunicator.serviceconstants import SAFE_OFF_WORKERS
 from game.gamelogic.gameconstants import GET_FULL_GAME_STATE
 from game.gamelogic.parcer import WorkerParser
-
-
-class GameData:
-    uid = None
-    room = None
-    service_com = None
-    new_instance = None
-
-    @classmethod
-    def set_new_data(cls, uid, room):
-        GameData.uid = uid
-        GameData.room = room
-        GameData.new_instance = True
-        if GameData.service_com is None:
-            GameData.service_com = SyncServiceCommunicator(1)
-
-
-class ClientOnly:
-    def __init__(self):
-        if GameData.new_instance is None:
-            raise Exception('Cant call this outside ActionHandler')
-        self.uid = GameData.uid
-        self.room = GameData.room
-        self._updated = True
-
-
-class ClientOnlyData(ClientOnly):
-    def __init__(self):
-        ClientOnly.__init__(self)
-        self._data_getter = GameData.service_com
-        self._updated = False
 
 
 class ActionHandler:
@@ -55,8 +24,8 @@ class ActionHandler:
             return f(game_obj)
         return n_func
 
-    def run(self):
-        data = SyncServiceCommunicator()
+    def run(self, channel):
+        data = SyncServiceCommunicator(channel)
         parser = WorkerParser()
         while True:
             channel, msg = data.pull_from_work_channel(0)

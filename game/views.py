@@ -17,7 +17,7 @@ async def gt():
 async def ping_task(ws: WebSocket):
     while True:
         try:
-            await asyncio.wait_for(ws.send_text("PING"), timeout=5)
+            await asyncio.wait_for(ws.send_text("PING"), timeout=15)
             await asyncio.sleep(5)
 
         except BaseException:
@@ -49,14 +49,14 @@ async def websocket_endpoint(websocket: WebSocket):
     loop.create_task(ping_task(websocket))
     parser = Parser()
     try:
-        await work_channel.push_in_work_channel(parser.parse_in_dec(uid, uroom, CLIENT_CONNECTED))
+        await work_channel.push_in_channel(parser.create_room_name(uroom), parser.parse_in_dec(uid, uroom, CLIENT_CONNECTED))
         while True:
             data = await websocket.receive_text()
-            await work_channel.push_in_work_channel(parser.parse_in_dec(uid, uroom, data))
+            await work_channel.push_in_channel(parser.create_room_name(uroom), parser.parse_in_dec(uid, uroom, data))
 
     except BaseException:
         client_holder.task_to_del_client(uid)
-        await work_channel.push_in_work_channel(parser.parse_in_dec(uid, uroom, CLIENT_DISCONNECTED))
+        await work_channel.push_in_channel(parser.create_room_name(uroom), parser.parse_in_dec(uid, uroom, CLIENT_DISCONNECTED))
         try:
             await websocket.close()
         except BaseException:

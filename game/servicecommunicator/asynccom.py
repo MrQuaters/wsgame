@@ -35,6 +35,9 @@ class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
     async def pull_from_work_channel(self, timeout) -> Optional[tuple]:
         return await self.re.blpop([WORKERS_CHANNEL, SAFE_OFF_WORKERS], timeout=timeout)
 
+    async def push_in_channel(self, ch, msg) -> None:
+        await self.re.rpush(ch, msg)
+
 
 class SingletonAsyncServerCommunicator():
     __instanced = None
