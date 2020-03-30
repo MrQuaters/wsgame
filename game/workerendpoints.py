@@ -11,7 +11,6 @@ ACTION_LIST = {
 
 
 class Answer:
-
     def __init__(self,fnum: int, action: str):
         self.fnum = fnum
         self.action = action
@@ -33,7 +32,7 @@ class Answer:
         return WorkerParser.parse_out(t)
 
 
-@App.register_middlepoint(GC.CLIENT_CONNECTED_STR)
+@App.register_middlepoint(GC.CLIENT_CONNECTED_STR)  # conn handler
 def conn(uid: int, game_obj):
     game = SingletonGame.get_game()
     role = int(game_obj[GC.PARCER_CONSTANTS["role"]])
@@ -52,3 +51,11 @@ def conn(uid: int, game_obj):
 
     return game.get_active_ids(), a.get_ret_object()
 
+
+@App.register_middlepoint(GC.CLIENT_DISCONNECTED_STR)  # disc handler
+def disc(uid: int, game_obj):
+    game = SingletonGame.get_game()
+    pl = game.get_player(uid)
+    game.disconnect_player(uid)
+    a = Answer(pl.get_fnum(), ACTION_LIST["dc"])
+    return game.get_active_ids(), a.get_ret_object()

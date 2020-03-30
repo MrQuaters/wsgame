@@ -5,12 +5,13 @@ from game.gamelogic.parcer import WorkerParser
 from game.gamelogic.gamecl import GameData
 
 
-class ActionHandler:
+class ActionHandler:  # main class for worker, using routes to handle actions
     def __init__(self, queue_len: int):
         self._queue_len = queue_len
-        self._functions_to_handle = {}
+        self._functions_to_handle = {}  # function dict action : handler_function
 
-    def register_middlepoint(self, end_point):
+    def register_middlepoint(self, end_point):  # decorator that used to register conn and disc handlers so
+        # u can not use GameData.get_data() in it, bsc game cli is not exist still
         def decorator(f):
             a = self._functions_to_handle.get(end_point)
             if a is not None:
@@ -19,7 +20,8 @@ class ActionHandler:
             return f
         return decorator
 
-    def register(self, end_point):
+    def register(self, end_point):  # normal decorator. cli exist can use GameData.get_data() that returns all about cli
+        # that u handle in fucntion
         def decorator(f):
             a = self._functions_to_handle.get(end_point)
             if a is not None:
@@ -28,14 +30,14 @@ class ActionHandler:
             return f
         return decorator
 
-    def _decorate_with_self_data(self, f):
+    def _decorate_with_self_data(self, f):  # decorating func by call set_new_data, puts data about cli in GameData
         def n_func(uid, game_obj):
             GameData.set_new_data(uid)
             return f(game_obj)
         return n_func
 
-    def run(self, channel):
-        data = SyncServiceCommunicator(channel)
+    def run(self, channel):  # start handler
+        data = SyncServiceCommunicator(channel)  # listening room channel
         parser = WorkerParser()
         while True:
             channel, msg = data.pull_from_work_channel(0)

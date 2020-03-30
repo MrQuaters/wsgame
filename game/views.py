@@ -14,7 +14,7 @@ async def gt():
     return HTMLResponse("ok")
 
 
-async def ping_task(ws: WebSocket):
+async def ping_task(ws: WebSocket): # ping task to find crit disconected clients
     while True:
         try:
             await asyncio.wait_for(ws.send_text("PING"), timeout=15)
@@ -29,13 +29,13 @@ async def ping_task(ws: WebSocket):
 
 
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(websocket: WebSocket):  # endpoint wor websocket
     await websocket.accept()
-    hid = websocket.headers.get("ID_FROM_COOKIE")
+    hid = websocket.headers.get("ID_FROM_COOKIE")  # headers defined in nginx config, putted by nginx in auth req
     hroom = websocket.headers.get("ROOM_FROM_COOKIE")
     role = websocket.headers.get("ROLE_FROM_COOKIE")
     fnum = websocket.headers.get("FNUM_FROM_COOKIE")
-    if hid is None or hroom is None or role is None or fnum is None:
+    if hid is None or hroom is None or role is None or fnum is None:  # if no headers - bad req
         try:
             await websocket.close()
         except BaseException:
@@ -46,23 +46,25 @@ async def websocket_endpoint(websocket: WebSocket):
     uroom = str(hroom)
     role = str(role)
     fnum = str(fnum)
-    client_holder = SingletonClientHolder.get_client_holder()
+    client_holder = SingletonClientHolder.get_client_holder()  # get client holder abstraction. Needed for info about
+# connected clients
     client_holder.task_to_add_client(uid, websocket)
-    work_channel = await SingletonAsyncServerCommunicator.get_communicator()
+    work_channel = await SingletonAsyncServerCommunicator.get_communicator()  # with this abstraction we can send data
+# to worker process that will handle game room
     loop = asyncio.get_event_loop()
-    loop.create_task(ping_task(websocket))
+    loop.create_task(ping_task(websocket))  # creating detached ping task
     parser = Parser()
-    try:
+    try:  # push data to worker process about new cli
         await work_channel.push_in_channel(
             parser.create_room_name(uroom), parser.parse_in_dec(uid, uroom, role, fnum, CLIENT_CONNECTED)
         )
-        while True:
+        while True:  # inf circle, get data from ws
             data = await websocket.receive_text()
-            await work_channel.push_in_channel(
+            await work_channel.push_in_channel(  # add std headers to data and push one to worker channel
                 parser.create_room_name(uroom), parser.parse_in_dec(uid, uroom, role, fnum, data)
             )
 
-    except BaseException:
+    except BaseException:  # if cli disconected or some trouble with broker, safe close client and exit from circle
         client_holder.task_to_del_client(uid)
         await work_channel.push_in_channel(
             parser.create_room_name(uroom), parser.parse_in_dec(uid, uroom, role, fnum, CLIENT_DISCONNECTED)

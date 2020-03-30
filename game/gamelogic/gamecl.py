@@ -113,11 +113,14 @@ class GameData:
     def set_new_data(cls, uid: int):
         a = SingletonGame.get_game()
         if a is not None:
-            GameData._data = a.get_player(uid)
+            t = GameData()
+            t.player = a.get_player(uid)
+            t.active_players = a.get_active_ids()
+            GameData._data = t
         else:
             GameData._data = None
 
     @classmethod
-    def get_data(cls) -> Optional[GameClient]:
+    def get_data(cls) -> Optional[GameData]:
         return GameData._data
 
