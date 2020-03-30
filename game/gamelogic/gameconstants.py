@@ -33,3 +33,8 @@ USER_ROLES = {
     "user": 0,
     "admin": 1
 }
+ACTION_LIST = {
+    'conn': 'connected',
+    'dc': 'disconnected',
+    'move': 'new_position'
+}

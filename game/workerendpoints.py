@@ -1,13 +1,9 @@
 from .worker import App
 import game.gamelogic.gameconstants as GC
+from game.gamelogic.gameconstants import ACTION_LIST
 from game.gamelogic.gamecl import GameData, SingletonGame
 from .gamelogic.parcer import WorkerParser
 
-ACTION_LIST = {
-    'conn': 'connected',
-    'dc': 'disconnected',
-    'move': 'new_position'
-}
 
 
 class Answer:
