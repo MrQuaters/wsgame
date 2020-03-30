@@ -86,8 +86,10 @@ class Game:
     def get_active_ids(self):
         rm = []
         for a in self._clients:
-            rm.append(a)
+            if self._clients[a].status == GAME_CONSTANTS["PLAYER_CONNECTED"]:
+                rm.append(a)
         return rm
+
 
 class SingletonGame:
     _game = None
