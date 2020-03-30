@@ -12,5 +12,24 @@ CLIENT_POSITIONING = {
     "CLIENT_DEFAULT_Y": 0.12
 }
 GAME_CONSTANTS = {
-    "MAX_PLAYERS_IN_ROOM": 6
+    "PLAYER_CONNECTED": 0,
+    "PLAYER_DISCONNECTED": 1,
+
+    "PLAYER_STOP": 2,
+    "PLAYER_BANNED": 3,
+
+    "MAX_PLAYERS_IN_ROOM": 6,
+    "GAME_STATE_W8_CLIENTS": -1
+}
+PARCER_CONSTANTS = {
+    "room": "us_room",
+    "action": "action",
+    "role": "us_role",
+    "fnum": "us_fnum",
+    "room_prefix": "rmn",
+    "id": "us_id"
+}
+USER_ROLES = {
+    "user": 0,
+    "admin": 1
 }

@@ -1,3 +1,9 @@
-import redis
-from game.gamehandlers import ActionHandler, ClientOnlyData, GameData
+from game.gamehandlers import ActionHandler
+
+App = ActionHandler(5)
+
+import game.workerendpoints
+
+
+
 
