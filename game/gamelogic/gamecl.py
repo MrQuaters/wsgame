@@ -30,6 +30,9 @@ class GameClient:
         self.target = None
         self.name = None
         self.set_reg_data = False
+        self.points = 0
+        self.res_cards = []
+        self.tar_cards = []
 
     def get_fnum(self):
         return self._fnum

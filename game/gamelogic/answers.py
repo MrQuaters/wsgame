@@ -36,7 +36,7 @@ class FullAnswer:
             st = cli.get_state()
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
-                self._gdata["need_reg"] = cli.set_reg_data
+                self._gdata["reg"] = cli.set_reg_data
             k["name"] = cli.name
             k["tg"] = cli.target
             if st is not None:
@@ -48,5 +48,4 @@ class FullAnswer:
         self._gdata["game_state"] = game.game_state
 
     def get_ret_object(self):
-
         return WorkerParser.parse_out(self._gdata)
