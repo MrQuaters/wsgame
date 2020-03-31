@@ -27,6 +27,9 @@ class GameClient:
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]
         self.exp = None
         self.admin = False
+        self.target = None
+        self.name = None
+        self.set_reg_data = False
 
     def get_fnum(self):
         return self._fnum
@@ -37,12 +40,16 @@ class GameClient:
     def get_turn(self):
         return self._turn
 
+    def get_id(self):
+        return self._uid
+
 
 class Admin(GameClient):
     def __init__(self, uid: int, fnum):
         GameClient.__init__(self, uid, -1, fnum)
         self._state = None
         self.admin = True
+        self.set_reg_data = True
 
 
 class Game:
@@ -94,6 +101,9 @@ class Game:
                 rm.append(a)
         return rm
 
+    def get_step(self):
+        return self._curr_step
+
 
 class SingletonGame:
     _game = None
@@ -110,6 +120,12 @@ class SingletonGame:
         return SingletonGame._game
 
 
+class ComplexData:
+    def __init__(self, plr, act):
+        self.player = plr
+        self.active_players = act
+
+
 class GameData:
     _data = None
 
@@ -117,13 +133,10 @@ class GameData:
     def set_new_data(cls, uid: int):
         a = SingletonGame.get_game()
         if a is not None:
-            t = GameData()
-            t.player = a.get_player(uid)
-            t.active_players = a.get_active_ids()
-            GameData._data = t
+            GameData._data = ComplexData(a.get_player(uid), a.get_active_ids())
         else:
             GameData._data = None
 
     @classmethod
-    def get_data(cls) -> Optional[GameData]:
+    def get_data(cls) -> Optional[ComplexData]:
         return GameData._data

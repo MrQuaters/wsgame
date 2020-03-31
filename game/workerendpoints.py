@@ -1,8 +1,10 @@
 from .worker import App
 import game.gamelogic.gameconstants as GC
 from game.gamelogic.gameconstants import ACTION_LIST
-from game.gamelogic.answers import Answer
+from game.gamelogic.answers import Answer, FullAnswer
 from game.gamelogic.gamecl import GameData, SingletonGame
+
+IGNORE = ([], " ")
 
 
 @App.register_middlepoint(GC.CLIENT_CONNECTED_STR)  # conn handler
@@ -29,6 +31,12 @@ def disc(uid: int, game_obj):
     return game.get_active_ids(), a.get_ret_object()
 
 
-@App.register(GC.USER_ACTION_LIST["info"])
+@App.register(GC.USER_ACTION_LIST["info"])  # info call msg
 def info(game_obj):
-    pass
+    a = GameData.get_data()
+    if a is not None:
+        if a.player is not None:
+            e = a.player.get_id()
+            return [e], FullAnswer(e, SingletonGame.get_game()).get_ret_object()
+
+    return IGNORE
