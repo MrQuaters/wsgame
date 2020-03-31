@@ -10,30 +10,39 @@ class ActionHandler:  # main class for worker, using routes to handle actions
         self._queue_len = queue_len
         self._functions_to_handle = {}  # function dict action : handler_function
 
-    def register_middlepoint(self, end_point):  # decorator that used to register conn and disc handlers so
+    def register_middlepoint(
+        self, end_point
+    ):  # decorator that used to register conn and disc handlers so
         # u can not use GameData.get_data() in it, bsc game cli is not exist still
         def decorator(f):
             a = self._functions_to_handle.get(end_point)
             if a is not None:
-                raise Exception('endpoint has been defined')
+                raise Exception("endpoint has been defined")
             self._functions_to_handle[end_point] = f
             return f
+
         return decorator
 
-    def register(self, end_point):  # normal decorator. cli exist can use GameData.get_data() that returns all about cli
+    def register(
+        self, end_point
+    ):  # normal decorator. cli exist can use GameData.get_data() that returns all about cli
         # that u handle in fucntion
         def decorator(f):
             a = self._functions_to_handle.get(end_point)
             if a is not None:
-                raise Exception('endpoint has been defined')
+                raise Exception("endpoint has been defined")
             self._functions_to_handle[end_point] = self._decorate_with_self_data(f)
             return f
+
         return decorator
 
-    def _decorate_with_self_data(self, f):  # decorating func by call set_new_data, puts data about cli in GameData
+    def _decorate_with_self_data(
+        self, f
+    ):  # decorating func by call set_new_data, puts data about cli in GameData
         def n_func(uid, game_obj):
             GameData.set_new_data(uid)
             return f(game_obj)
+
         return n_func
 
     def run(self, channel):  # start handler
@@ -58,7 +67,9 @@ class ActionHandler:  # main class for worker, using routes to handle actions
 
             send_to, msg = fun(int(uid), obj)
             print(send_to, msg)
-'''
+
+
+"""
             for cli in send_to:
                 q_len = data.queue_len(str(cli))
                 if q_len >= self._queue_len:
@@ -66,4 +77,4 @@ class ActionHandler:  # main class for worker, using routes to handle actions
                 r = data.push_to_client_channel(str(cli), msg)
                 if r == self._queue_len:
                     data.push_to_client_channel(str(cli), GET_FULL_GAME_STATE)
-'''
+"""

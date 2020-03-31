@@ -9,7 +9,7 @@ class BaseClientHolder:
     def task_to_add_client(self, cli, data) -> None:
         pass
 
-    def task_to_del_client(self, cli)-> None:
+    def task_to_del_client(self, cli) -> None:
         pass
 
     def apply_changes(self) -> None:

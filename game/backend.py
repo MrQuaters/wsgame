@@ -15,8 +15,10 @@ async def set_out_message_handler():  # circle that gets data from worker proces
         if len(id_list) == 0:  # if no ids sleep for 1s
             await asyncio.sleep(1)
             continue
-        user_data = await service_communicator.listen_for_clients(id_list, 1)  # w8 for data from worker 1s limit need
-# for new users handle
+        user_data = await service_communicator.listen_for_clients(
+            id_list, 1
+        )  # w8 for data from worker 1s limit need
+        # for new users handle
         if user_data is not None:  # std procedure for sending data to cli
             cli_ws = client_holder.client_get(user_data[0])
             if cli_ws is not None:

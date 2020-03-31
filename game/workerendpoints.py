@@ -5,9 +5,8 @@ from game.gamelogic.gamecl import GameData, SingletonGame
 from .gamelogic.parcer import WorkerParser
 
 
-
 class Answer:
-    def __init__(self,fnum: int, action: str):
+    def __init__(self, fnum: int, action: str):
         self.fnum = fnum
         self.action = action
         self.w_value = None
@@ -15,10 +14,7 @@ class Answer:
         self.y = None
 
     def get_ret_object(self):
-        t = {
-            "fnum": self.fnum,
-            "action": self.action,
-        }
+        t = {"fnum": self.fnum, "action": self.action}
         if self.w_value:
             t["w_value"] = self.w_value
         if self.x:
@@ -38,7 +34,7 @@ def conn(uid: int, game_obj):
     else:
         game.add_player(uid, fnum)
 
-    a = Answer(fnum, ACTION_LIST['conn'])
+    a = Answer(fnum, ACTION_LIST["conn"])
     if role != GC.USER_ROLES["admin"]:
         pl = game.get_player(uid)
         st = pl.get_state()

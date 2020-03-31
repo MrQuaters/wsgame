@@ -23,7 +23,7 @@ class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
 
     async def start(self):
         if not self.iscon:
-            self.re = await aioredis.create_redis(REDIS_ADDRESS, encoding='UTF-8', db=0)
+            self.re = await aioredis.create_redis(REDIS_ADDRESS, encoding="UTF-8", db=0)
             self.iscon = True
 
     async def listen_for_clients(self, cli, timeout) -> Optional[tuple]:
@@ -39,7 +39,7 @@ class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
         await self.re.rpush(ch, msg)
 
 
-class SingletonAsyncServerCommunicator():
+class SingletonAsyncServerCommunicator:
     __instanced = None
 
     @classmethod
@@ -52,6 +52,7 @@ class SingletonAsyncServerCommunicator():
                 await asyncio.sleep(0.1)
 
         return SingletonAsyncServerCommunicator.__instanced
+
 
 class CallFunc:
     def __init__(self, fun, *args, **kwargs):
@@ -91,6 +92,3 @@ class SafeInit:
     def loop_run_forever(self, loop):
         loop.create_task(self._runblock(loop))
         loop.run_forever()
-
-
-

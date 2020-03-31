@@ -3,15 +3,14 @@ from .gameconstants import PARCER_CONSTANTS
 
 
 class BaseParser:
-
     def parse_in(self, msg):
-       pass
+        pass
 
     def parse_out(self, msg):
         pass
 
     def create_room_name(self, room):
-        return PARCER_CONSTANTS['room_prefix']+str(room)
+        return PARCER_CONSTANTS["room_prefix"] + str(room)
 
 
 class Parser(BaseParser):
@@ -34,7 +33,11 @@ class Parser(BaseParser):
 class WorkerParser(BaseParser):
     def parse_in(self, msg):
         a = json.loads(msg)
-        return a.pop(PARCER_CONSTANTS["action"], None), a.pop(PARCER_CONSTANTS["id"], None), a
+        return (
+            a.pop(PARCER_CONSTANTS["action"], None),
+            a.pop(PARCER_CONSTANTS["id"], None),
+            a,
+        )
 
     @classmethod
     def parse_out(cls, msg):

@@ -19,9 +19,10 @@ class GameClient:
         self._turn = turn
         self._fnum = fnum
         self._state = State(
-            CLIENT_POSITIONING["CLIENT_DEFAULT_X"] + 0.01 * (uid % GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"]),
+            CLIENT_POSITIONING["CLIENT_DEFAULT_X"]
+            + 0.01 * (uid % GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"]),
             CLIENT_POSITIONING["CLIENT_DEFAULT_Y"],
-            -1
+            -1,
         )
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]
         self.exp = None
@@ -36,9 +37,7 @@ class GameClient:
         return self._turn
 
 
-
 class Admin(GameClient):
-
     def __init__(self, uid: int):
         self._uid = uid
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]
@@ -72,8 +71,11 @@ class Game:
         a = self._clients.get(uid)
         if a is not None:
             a.turn = False
-            if a.status != GAME_CONSTANTS["PLAYER_DISCONNECTED"] and a.exp != GAME_CONSTANTS["PLAYER_BANNED"] \
-                    and a.exp != GAME_CONSTANTS["PLAYER_STOP"]:
+            if (
+                a.status != GAME_CONSTANTS["PLAYER_DISCONNECTED"]
+                and a.exp != GAME_CONSTANTS["PLAYER_BANNED"]
+                and a.exp != GAME_CONSTANTS["PLAYER_STOP"]
+            ):
 
                 if a.get_turn() == self._curr_step:
                     a.turn = True
@@ -102,7 +104,7 @@ class SingletonGame:
     @classmethod
     def get_game(cls) -> Game:
         if SingletonGame._game is None:
-            raise Exception('GAME NOT CREATED')
+            raise Exception("GAME NOT CREATED")
         return SingletonGame._game
 
 
@@ -123,4 +125,3 @@ class GameData:
     @classmethod
     def get_data(cls) -> Optional[GameData]:
         return GameData._data
-
