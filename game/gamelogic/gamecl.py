@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import NamedTuple, Optional
 import random
-from game.gamelogic.gameconstants import CLIENT_POSITIONING, GAME_CONSTANTS
+from game.gamelogic.gameconstants import CLIENT_POSITIONING, GAME_CONSTANTS, USER_ROLES
 
 
 class State(NamedTuple):
@@ -26,6 +26,7 @@ class GameClient:
         )
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]
         self.exp = None
+        self.admin = False
 
     def get_fnum(self):
         return self._fnum
@@ -38,9 +39,10 @@ class GameClient:
 
 
 class Admin(GameClient):
-    def __init__(self, uid: int):
-        self._uid = uid
-        self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]
+    def __init__(self, uid: int, fnum):
+        GameClient.__init__(self, uid, -1, fnum)
+        self._state = None
+        self.admin = True
 
 
 class Game:
@@ -57,13 +59,13 @@ class Game:
         self._curr_step = -1
         self._r_step = -1
 
-    def add_admin(self, uid):
-        self._clients[uid] = Admin(uid)
-
-    def add_player(self, uid: int, fnum: int):
+    def add_player(self, uid: int, fnum: int, role: int):
         if self._clients.get(uid) is None:
-            a = self._turns.pop(random.randint(0, len(self._turns) - 1))
-            self._clients[uid] = GameClient(uid, a, fnum)
+            if role == USER_ROLES["user"]:
+                a = self._turns.pop(random.randint(0, len(self._turns) - 1))
+                self._clients[uid] = GameClient(uid, a, fnum)
+            else:
+                self._clients[uid] = Admin(uid, fnum)
         else:
             self._clients[uid].status = GAME_CONSTANTS["PLAYER_CONNECTED"]
 

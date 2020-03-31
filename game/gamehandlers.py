@@ -74,10 +74,11 @@ class ActionHandler:  # main class for worker, using routes to handle actions
 
 """
             for cli in send_to:
-                q_len = data.queue_len(str(cli))
+                cli = str(cli)
+                q_len = data.queue_len(cli)
                 if q_len >= self._queue_len:
                     continue
-                r = data.push_to_client_channel(str(cli), msg)
+                r = data.push_to_client_channel(cli, msg)
                 if r == self._queue_len:
-                    data.push_to_client_channel(str(cli), GET_FULL_GAME_STATE)
+                    data.push_to_client_channel(cli, GET_FULL_GAME_STATE)
 """

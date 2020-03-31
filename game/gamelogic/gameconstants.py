@@ -7,7 +7,7 @@ CLIENT_CONNECTED = '{"action" : "' + CLIENT_CONNECTED_STR + '"}'
 CLIENT_DISCONNECTED_STR = "disconnected"
 CLIENT_DISCONNECTED = '{"action" : "' + CLIENT_DISCONNECTED_STR + '"}'
 
-CLIENT_POSITIONING = {"CLIENT_DEFAULT_X": 0.45, "CLIENT_DEFAULT_Y": 0.12}
+CLIENT_POSITIONING = {"CLIENT_DEFAULT_X": 0.8, "CLIENT_DEFAULT_Y": 0.16}
 GAME_CONSTANTS = {
     "PLAYER_CONNECTED": 0,
     "PLAYER_DISCONNECTED": 1,
@@ -25,4 +25,10 @@ PARCER_CONSTANTS = {
     "id": "us_id",
 }
 USER_ROLES = {"user": 0, "admin": 1}
-ACTION_LIST = {"conn": "connected", "dc": "disconnected", "move": "new_position"}
+ACTION_LIST = {
+    "conn": "connected",
+    "dc": "disconnected",
+    "move": "new_position",
+    "ping": "PING",
+}
+USER_ACTION_LIST = {"info": "get_info"}

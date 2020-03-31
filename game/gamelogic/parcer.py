@@ -1,5 +1,5 @@
 import json
-from .gameconstants import PARCER_CONSTANTS
+from game.gamelogic.gameconstants import PARCER_CONSTANTS
 
 
 class BaseParser:
