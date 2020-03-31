@@ -48,6 +48,10 @@ def conn(uid: int, game_obj):
 def disc(uid: int, game_obj):
     game = SingletonGame.get_game()
     pl = game.get_player(uid)
+    if pl is None:
+        conn(uid, game_obj)
+        pl = game.get_player(uid)
+
     game.disconnect_player(uid)
     a = Answer(pl.get_fnum(), ACTION_LIST["dc"])
     return game.get_active_ids(), a.get_ret_object()

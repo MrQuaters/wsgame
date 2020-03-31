@@ -15,7 +15,7 @@ class BaseSyncServiceCommunicator:
 
 
 class SyncServiceCommunicator(BaseSyncServiceCommunicator):
-    def __init__(self, channel=None, db: int = 0):
+    def __init__(self, channel=None, endchannel=None, db: int = 0):
         self._re = redis.Redis(
             host=REDIS_HOST, port=REDIS_PORT, db=db, encoding="UTF-8"
         )
@@ -23,9 +23,15 @@ class SyncServiceCommunicator(BaseSyncServiceCommunicator):
             self._WORKERS_CHANNEL = WORKERS_CHANNEL
         else:
             self._WORKERS_CHANNEL = channel
+        if endchannel is None:
+            self._SAFE_OFF_WORKERS = SAFE_OFF_WORKERS
+        else:
+            self._SAFE_OFF_WORKERS = endchannel
 
     def pull_from_work_channel(self, timeout) -> Optional[tuple]:
-        a = self._re.blpop([self._WORKERS_CHANNEL, SAFE_OFF_WORKERS], timeout=timeout)
+        a = self._re.blpop(
+            [self._WORKERS_CHANNEL, self._SAFE_OFF_WORKERS], timeout=timeout
+        )
         if a is not None:
             return (a[0].decode("utf-8"), a[1].decode("utf-8"))
 
@@ -34,3 +40,6 @@ class SyncServiceCommunicator(BaseSyncServiceCommunicator):
 
     def queue_len(self, client) -> int:
         return self._re.llen(client)
+
+    def clear_channel(self):
+        self._re.delete(self._WORKERS_CHANNEL, self._SAFE_OFF_WORKERS)

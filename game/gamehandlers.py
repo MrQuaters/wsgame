@@ -45,13 +45,16 @@ class ActionHandler:  # main class for worker, using routes to handle actions
 
         return n_func
 
-    def run(self, channel):  # start handler
-        data = SyncServiceCommunicator(channel)  # listening room channel
+    def run(self, channel, end_loop_channel):  # start handler
+        data = SyncServiceCommunicator(
+            channel, end_loop_channel
+        )  # listening room channel
+        data.clear_channel()
         parser = WorkerParser()
         while True:
             channel, msg = data.pull_from_work_channel(0)
 
-            if channel == SAFE_OFF_WORKERS:
+            if channel == end_loop_channel:
                 return
             try:
                 act, uid, obj = parser.parse_in(msg)
