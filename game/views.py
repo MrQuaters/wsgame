@@ -1,16 +1,17 @@
-from fastapi.responses import HTMLResponse
+import asyncio
+
 from fastapi import FastAPI, WebSocket
-from game.helper.clientholder import SingletonClientHolder
-from game.servicecommunicator.asynccom import SingletonAsyncServerCommunicator
-from game.gamelogic.parcer import Parser
+from fastapi.responses import HTMLResponse
+
+from game.gamelogic.answers import Answer
 from game.gamelogic.gameconstants import (
     CLIENT_CONNECTED,
     CLIENT_DISCONNECTED,
     ACTION_LIST,
 )
-from game.gamelogic.answers import Answer
-import asyncio
-
+from game.gamelogic.parcer import Parser
+from game.helper.clientholder import SingletonClientHolder
+from game.servicecommunicator.asynccom import SingletonAsyncServerCommunicator
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
@@ -27,7 +28,7 @@ async def ping_task(ws: WebSocket):  # ping task to find crit disconected client
                 ws.send_text(Answer(-1, ACTION_LIST["ping"]).get_ret_object()),
                 timeout=15,
             )
-            await asyncio.sleep(15)
+            await asyncio.sleep(30)
 
         except BaseException:
             try:

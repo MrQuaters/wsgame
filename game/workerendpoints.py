@@ -38,7 +38,7 @@ def info(game_obj):
     return [e], FullAnswer(e, SingletonGame.get_game()).get_ret_object()
 
 
-@App.register(GC.USER_ACTION_LIST["reg"])
+@App.register(GC.USER_ACTION_LIST["reg"])  # add name n target
 def reg(game_obj):
     name = game_obj.get("name")
     target = game_obj.get("target")
@@ -58,30 +58,31 @@ def reg(game_obj):
     return a.active_players, answ.get_ret_object()
 
 
-@App.register(GC.USER_ACTION_LIST["move"])
+@App.register(GC.USER_ACTION_LIST["move"])  # user move point
 def move(game_obj):
     x = game_obj.get("x")
     y = game_obj.get("y")
     if x is None or y is None:
         return IGNORE
     try:
-        x = round(float(x), 2)
-        y = float(float(y), 2)
+        x = float(x)
+        y = float(y)
     except BaseException:
         return IGNORE
 
     a = GameData.get_data()
+    """
     if not a.player.turn:
         return (
             [a.player.get_id()],
             ErrorActAnswer("Not your turn to move").get_ret_object(),
         )
+    """
     pos = a.player.get_state()
     if pos is None:
         return IGNORE
 
-    pos.x = x
-    pos.y = y
+    pos.set_x_y(x, y)
     answ = Answer(a.player.get_fnum(), ACTION_LIST["move"])
     answ.set_x_y(pos)
     return a.active_players, answ.get_ret_object()

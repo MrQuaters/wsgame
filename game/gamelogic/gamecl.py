@@ -1,14 +1,24 @@
 from __future__ import annotations
-from typing import NamedTuple, Optional
+
 import random
+from typing import Optional
+
 from game.gamelogic.gameconstants import CLIENT_POSITIONING, GAME_CONSTANTS, USER_ROLES
+
+
+def to_fixed(val, cnt):
+    return float(("{:." + str(cnt) + "f}").format(val))
 
 
 class State:
     def __init__(self, x, y, cp):
-        self.x: float = x
-        self.y: float = y
+        self.x: float = to_fixed(x, 3)
+        self.y: float = to_fixed(y, 3)
         self.cube_point: int = cp
+
+    def set_x_y(self, x, y):
+        self.x = to_fixed(x, 3)
+        self.y = to_fixed(y, 3)
 
 
 class GameClient:
@@ -26,7 +36,7 @@ class GameClient:
             -1,
         )
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]  # player status
-        self.penalty = None                               # player penalty
+        self.penalty = None  # player penalty
         self.admin = False
         self.target = None
         self.name = None
@@ -84,11 +94,7 @@ class Game:
         a = self._clients.get(uid)
         if a is not None:
             a.turn = False
-            if (
-                a.status != GAME_CONSTANTS["PLAYER_DISCONNECTED"]
-                and a.penalty is None
-            ):
-
+            if a.status != GAME_CONSTANTS["PLAYER_DISCONNECTED"] and a.penalty is None:
                 if a.get_turn() == self._curr_step:
                     a.turn = True
         return a
