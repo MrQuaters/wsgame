@@ -1,8 +1,7 @@
-from game.servicecommunicator.synccom import SyncServiceCommunicator
-from game.servicecommunicator.serviceconstants import SAFE_OFF_WORKERS
+from game.gamelogic.gamecl import GameData
 from game.gamelogic.gameconstants import GET_FULL_GAME_STATE
 from game.gamelogic.parcer import WorkerParser
-from game.gamelogic.gamecl import GameData
+from game.servicecommunicator.synccom import SyncServiceCommunicator
 
 
 class ActionHandler:  # main class for worker, using routes to handle actions
@@ -41,6 +40,8 @@ class ActionHandler:  # main class for worker, using routes to handle actions
     ):  # decorating func by call set_new_data, puts data about cli in GameData
         def n_func(uid, game_obj):
             GameData.set_new_data(uid)
+            if not GameData.exist():
+                return ([], " ")
             return f(game_obj)
 
         return n_func
@@ -71,8 +72,6 @@ class ActionHandler:  # main class for worker, using routes to handle actions
             send_to, msg = fun(int(uid), obj)
             print(send_to, msg)
 
-
-"""
             for cli in send_to:
                 cli = str(cli)
                 q_len = data.queue_len(cli)
@@ -81,4 +80,3 @@ class ActionHandler:  # main class for worker, using routes to handle actions
                 r = data.push_to_client_channel(cli, msg)
                 if r == self._queue_len:
                     data.push_to_client_channel(cli, GET_FULL_GAME_STATE)
-"""
