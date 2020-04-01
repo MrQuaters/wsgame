@@ -1,7 +1,7 @@
 from .worker import App
 import game.gamelogic.gameconstants as GC
 from game.gamelogic.gameconstants import ACTION_LIST
-from game.gamelogic.answers import Answer, FullAnswer
+from game.gamelogic.answers import Answer, FullAnswer, ErrorActAnswer
 from game.gamelogic.gamecl import GameData, SingletonGame
 
 IGNORE = ([], " ")
@@ -33,10 +33,56 @@ def disc(uid: int, game_obj):
 
 @App.register(GC.USER_ACTION_LIST["info"])  # info call msg
 def info(game_obj):
+    if not GameData.exist():
+        return IGNORE
     a = GameData.get_data()
-    if a is not None:
-        if a.player is not None:
-            e = a.player.get_id()
-            return [e], FullAnswer(e, SingletonGame.get_game()).get_ret_object()
+    e = a.player.get_id()
+    return [e], FullAnswer(e, SingletonGame.get_game()).get_ret_object()
 
-    return IGNORE
+
+@App.register(GC.USER_ACTION_LIST["reg"])
+def reg(game_obj):
+    name = game_obj.get("name")
+    target = game_obj.get("target")
+    if name is None or target is None:
+        return IGNORE
+    if not GameData.exist():
+        return IGNORE
+    a = GameData.get_data()
+    if a.player.set_reg_data:
+        return [a.player.get_id()], ErrorActAnswer("U had already set name").get_ret_object()
+    a.player.target = str(target)
+    a.player.name = str(name)
+    a.player.set_reg_data = True
+    answ = Answer(a.player.get_fnum(), ACTION_LIST["reg"])
+    answ.w_value = name
+    return a.active_players, answ.get_ret_object()
+
+
+@App.register(GC.USER_ACTION_LIST["move"])
+def move(game_obj):
+    x = game_obj.get("x")
+    y = game_obj.get("y")
+    if x is None or y is None:
+        return IGNORE
+    try:
+        x = float(x)
+        y = float(y)
+    except BaseException:
+        return IGNORE
+
+    if not GameData.exist():
+        return IGNORE
+
+    a = GameData.get_data()
+    if not a.player.turn:
+        return [a.player.get_id()], ErrorActAnswer("Not your turn yo move").get_ret_object()
+    pos = a.player.get_state()
+    if pos is None:
+        return IGNORE
+
+    pos.x = x
+    pos.y = y
+    answ = Answer(a.player.get_fnum(), ACTION_LIST["move"])
+    answ.set_x_y(pos)
+    return a.active_players, answ.get_ret_object()

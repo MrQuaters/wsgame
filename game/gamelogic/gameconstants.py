@@ -29,6 +29,7 @@ ACTION_LIST = {
     "conn": "connected",
     "dc": "disconnected",
     "move": "new_position",
+    "reg": "new_name",
     "ping": "PING",
 }
-USER_ACTION_LIST = {"info": "get_info"}
+USER_ACTION_LIST = {"info": "get_info", "reg": "add_name", "move": "new_position"}

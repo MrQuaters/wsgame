@@ -34,18 +34,33 @@ class FullAnswer:
             k = {}
             cli = game.get_player(a)
             st = cli.get_state()
+            self._gdata["reg"] = cli.set_reg_data
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
-                self._gdata["reg"] = cli.set_reg_data
             k["name"] = cli.name
-            k["tg"] = cli.target
+
             if st is not None:
                 k["x"] = st.x
                 k["y"] = st.y
+                k["bl"] = cli.points
+
             self._gdata[cli.get_fnum()] = k
 
         self._gdata["cur_step"] = game.get_step()
         self._gdata["game_state"] = game.game_state
+
+    def get_ret_object(self):
+        return WorkerParser.parse_out(self._gdata)
+
+
+class ErrorActAnswer:
+    def  __init__(self, error, act_after=None):
+        self._gdata = {
+            "error": error,
+            "action": "error",
+        }
+        if act_after is not None:
+            self._gdata["do_after"] = act_after
 
     def get_ret_object(self):
         return WorkerParser.parse_out(self._gdata)

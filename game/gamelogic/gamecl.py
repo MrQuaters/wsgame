@@ -4,10 +4,11 @@ import random
 from game.gamelogic.gameconstants import CLIENT_POSITIONING, GAME_CONSTANTS, USER_ROLES
 
 
-class State(NamedTuple):
-    x: int
-    y: int
-    cube_point: int
+class State:
+    def __init__(self, x, y, cp):
+        self.x: float = x
+        self.y: float = y
+        self.cube_point: int = cp
 
 
 class GameClient:
@@ -16,23 +17,24 @@ class GameClient:
 
     def __init__(self, uid: int, turn, fnum):
         self._uid = uid
-        self._turn = turn
-        self._fnum = fnum
+        self._turn = turn  # game num when he goes
+        self._fnum = fnum  # number of point
         self._state = State(
             CLIENT_POSITIONING["CLIENT_DEFAULT_X"]
             + 0.01 * (uid % GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"]),
             CLIENT_POSITIONING["CLIENT_DEFAULT_Y"],
             -1,
         )
-        self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]
-        self.exp = None
+        self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]  # player status
+        self.penalty = None                               # player penalty
         self.admin = False
         self.target = None
         self.name = None
         self.set_reg_data = False
-        self.points = 0
+        self.points = 5
+        self.cur_position_num = 0
+        self.direction = 1
         self.res_cards = []
-        self.tar_cards = []
 
     def get_fnum(self):
         return self._fnum
@@ -52,7 +54,6 @@ class Admin(GameClient):
         GameClient.__init__(self, uid, -1, fnum)
         self._state = None
         self.admin = True
-        self.set_reg_data = True
 
 
 class Game:
@@ -85,8 +86,7 @@ class Game:
             a.turn = False
             if (
                 a.status != GAME_CONSTANTS["PLAYER_DISCONNECTED"]
-                and a.exp != GAME_CONSTANTS["PLAYER_BANNED"]
-                and a.exp != GAME_CONSTANTS["PLAYER_STOP"]
+                and a.penalty is None
             ):
 
                 if a.get_turn() == self._curr_step:
@@ -124,7 +124,7 @@ class SingletonGame:
 
 
 class ComplexData:
-    def __init__(self, plr, act):
+    def __init__(self, plr: GameClient, act: []):
         self.player = plr
         self.active_players = act
 
@@ -143,3 +143,12 @@ class GameData:
     @classmethod
     def get_data(cls) -> Optional[ComplexData]:
         return GameData._data
+
+    @classmethod
+    def exist(cls):
+        if GameData._data is None:
+            return False
+        if GameData._data.player is None:
+            return False
+
+        return True
