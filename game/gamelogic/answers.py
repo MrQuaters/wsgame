@@ -37,8 +37,7 @@ class FullAnswer:
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
                 self._gdata["reg"] = cli.set_reg_data
-            ans = Answer(cli)
-            self._gdata["users"].append(ans.get_object())
+            self._gdata["users"].append(Answer(cli).get_object())
 
         self._gdata["cur_step"] = game.get_step()
         self._gdata["game_state"] = game.game_state
