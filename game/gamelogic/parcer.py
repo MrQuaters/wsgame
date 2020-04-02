@@ -45,3 +45,7 @@ class WorkerParser(BaseParser):
     @classmethod
     def parse_out(cls, msg):
         return json.dumps(msg)
+
+    @classmethod
+    def KICK_PLAYER(cls, uid):
+        return [uid], "12"

@@ -41,7 +41,7 @@ class ActionHandler:  # main class for worker, using routes to handle actions
         def n_func(uid, game_obj):
             GameData.set_new_data(uid)
             if not GameData.exist():
-                return ([], " ")
+                return WorkerParser.KICK_PLAYER(uid)
             return f(game_obj)
 
         return n_func

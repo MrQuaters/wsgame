@@ -141,10 +141,7 @@ class GameData:
     @classmethod
     def set_new_data(cls, uid: int):
         a = SingletonGame.get_game()
-        if a is not None:
-            GameData._data = ComplexData(a.get_player(uid), a.get_active_ids())
-        else:
-            GameData._data = None
+        GameData._data = ComplexData(a.get_player(uid), a.get_active_ids())
 
     @classmethod
     def get_data(cls) -> Optional[ComplexData]:
@@ -152,9 +149,6 @@ class GameData:
 
     @classmethod
     def exist(cls):
-        if GameData._data is None:
-            return False
         if GameData._data.player is None:
             return False
-
         return True
