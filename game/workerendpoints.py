@@ -4,7 +4,13 @@ from game.gamelogic.gamecl import GameData, SingletonGame
 from game.gamelogic.gameconstants import ACTION_LIST
 from .worker import App
 
-IGNORE = ([], " ")
+
+def IGNORE():
+    return [], " "
+
+
+def KICK_PLAYER(uid):
+    return [uid], "12"
 
 
 @App.register_middlepoint(GC.CLIENT_CONNECTED_STR)  # conn handler
@@ -43,7 +49,7 @@ def reg(game_obj):
     name = game_obj.get("name")
     target = game_obj.get("target")
     if name is None or target is None:
-        return IGNORE
+        return IGNORE()
     a = GameData.get_data()
     if a.player.set_reg_data:
         return (
@@ -63,12 +69,12 @@ def move(game_obj):
     x = game_obj.get("x")
     y = game_obj.get("y")
     if x is None or y is None:
-        return IGNORE
+        return IGNORE()
     try:
         x = float(x)
         y = float(y)
     except BaseException:
-        return IGNORE
+        return IGNORE()
 
     a = GameData.get_data()
     """
@@ -80,7 +86,7 @@ def move(game_obj):
     """
     pos = a.player.get_state()
     if pos is None:
-        return IGNORE
+        return IGNORE()
 
     pos.set_x_y(x, y)
     answ = Answer(a.player.get_fnum(), ACTION_LIST["move"])

@@ -1,4 +1,5 @@
 import json
+
 from game.gamelogic.gameconstants import PARCER_CONSTANTS
 
 
@@ -27,6 +28,8 @@ class Parser(BaseParser):
         return b
 
     def parse_out(self, msg):
+        if len(msg) < 5:
+            raise Exception("1")
         return msg
 
 
