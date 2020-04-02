@@ -1,50 +1,44 @@
-from .gamecl import Game
+from .gamecl import Game, GameClient
+from .gameconstants import ANSWER_PACKAGE_NAMES, ACTION_LIST
 from .parcer import WorkerParser
 
 
 class Answer:
-    def __init__(self, fnum: int, action: str):
-        self.fnum = fnum
-        self.action = action
-        self.w_value = None
-        self.x = None
-        self.y = None
-
-    def set_x_y(self, st):
-        if st is not None:
-            self.x = st.x
-            self.y = st.y
+    def __init__(self, gc: GameClient, action: str = None, wst: str = None):
+        self._gdata = {"type": ANSWER_PACKAGE_NAMES["def"]}
+        if action is None:
+            action = ACTION_LIST["default"]
+        self._gdata["action"] = action
+        if wst is not None:
+            self._gdata["act_val"] = wst
+        if gc is None:
+            return
+        self._gdata["fnum"] = gc.get_fnum()
+        t = gc.get_state()
+        if t is not None:
+            self._gdata["x"] = t.x
+            self._gdata["y"] = t.y
+            self._gdata["pts"] = gc.points
+        self._gdata["name"] = gc.name
 
     def get_ret_object(self):
-        t = {"fnum": self.fnum, "action": self.action}
-        if self.w_value:
-            t["w_value"] = self.w_value
-        if self.x:
-            t["x"] = self.x
-            t["y"] = self.y
+        return WorkerParser.parse_out(self._gdata)
 
-        return WorkerParser.parse_out(t)
+    def get_object(self):
+        return self._gdata
 
 
 class FullAnswer:
     def __init__(self, myid: int, game: Game):
-        self._gdata = {"users": []}
+        self._gdata = {"users": [], "type": ANSWER_PACKAGE_NAMES["big"]}
         t = game.get_active_ids()
         for a in t:
-            k = {}
             cli = game.get_player(a)
-            st = cli.get_state()
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
                 self._gdata["reg"] = cli.set_reg_data
-            k["name"] = cli.name
-            k["fnum"] = cli.get_fnum()
-            if st is not None:
-                k["x"] = st.x
-                k["y"] = st.y
-                k["bl"] = cli.points
-
-            self._gdata["users"].append(k)
+            ans = Answer(cli)
+            self._gdata["users"].append(ans.get_object())
 
         self._gdata["cur_step"] = game.get_step()
         self._gdata["game_state"] = game.game_state
@@ -55,7 +49,7 @@ class FullAnswer:
 
 class ErrorActAnswer:
     def __init__(self, error, act_after=None):
-        self._gdata = {"error": error, "action": "error"}
+        self._gdata = {"error": error, "type": ANSWER_PACKAGE_NAMES["err"]}
         if act_after is not None:
             self._gdata["do_after"] = act_after
 

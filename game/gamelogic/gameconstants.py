@@ -29,8 +29,8 @@ USER_ROLES = {"user": 0, "admin": 1}
 ACTION_LIST = {
     "conn": "connected",
     "dc": "disconnected",
-    "move": "new_position",
-    "reg": "new_name",
+    "default": "default",
     "ping": "PING",
 }
 USER_ACTION_LIST = {"info": "get_info", "reg": "add_name", "move": "new_position"}
+ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}

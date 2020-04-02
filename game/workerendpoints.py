@@ -15,9 +15,10 @@ def conn(uid: int, game_obj):
     role = int(game_obj[GC.PARCER_CONSTANTS["role"]])
     fnum = int(game_obj[GC.PARCER_CONSTANTS["fnum"]])
     game.add_player(uid, fnum, role)
-    a = Answer(fnum, ACTION_LIST["conn"])
-    a.set_x_y(game.get_player(uid).get_state())
-    return game.get_active_ids(), a.get_ret_object()
+    return (
+        game.get_active_ids(),
+        Answer(game.get_player(uid), ACTION_LIST["conn"]).get_ret_object(),
+    )
 
 
 @App.register_middlepoint(GC.CLIENT_DISCONNECTED_STR)  # disc handler
@@ -27,8 +28,7 @@ def disc(uid: int, game_obj):
     if pl is None:
         return IGNORE()
     game.disconnect_player(uid)
-    a = Answer(pl.get_fnum(), ACTION_LIST["dc"])
-    return game.get_active_ids(), a.get_ret_object()
+    return game.get_active_ids(), Answer(pl, ACTION_LIST["dc"]).get_ret_object()
 
 
 @App.register(GC.USER_ACTION_LIST["info"])  # info call msg
@@ -53,9 +53,7 @@ def reg(game_obj):
     a.player.target = str(target)
     a.player.name = str(name)
     a.player.set_reg_data = True
-    answ = Answer(a.player.get_fnum(), ACTION_LIST["reg"])
-    answ.w_value = name
-    return a.active_players, answ.get_ret_object()
+    return a.active_players, Answer(a.player).get_ret_object()
 
 
 @App.register(GC.USER_ACTION_LIST["move"])  # user move point
@@ -78,11 +76,11 @@ def move(game_obj):
             ErrorActAnswer("Not your turn to move").get_ret_object(),
         )
     """
+    if x > 1 or x < 0 or y > 1 or y < 0:
+        return ([a.player.get_id()], ErrorActAnswer("Wrong Values XY").get_ret_object())
     pos = a.player.get_state()
     if pos is None:
         return IGNORE()
 
     pos.set_x_y(x, y)
-    answ = Answer(a.player.get_fnum(), ACTION_LIST["move"])
-    answ.set_x_y(pos)
-    return a.active_players, answ.get_ret_object()
+    return a.active_players, Answer(a.player).get_ret_object()

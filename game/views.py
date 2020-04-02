@@ -25,8 +25,8 @@ async def ping_task(ws: WebSocket):  # ping task to find crit disconected client
     while True:
         try:
             await asyncio.wait_for(
-                ws.send_text(Answer(-1, ACTION_LIST["ping"]).get_ret_object()),
-                timeout=15,
+                ws.send_text(Answer(None, ACTION_LIST["ping"]).get_ret_object()),
+                timeout=5,
             )
             await asyncio.sleep(30)
 
