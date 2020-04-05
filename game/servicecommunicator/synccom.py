@@ -1,5 +1,7 @@
-import redis
 from typing import Optional
+
+import redis
+
 from .serviceconstants import WORKERS_CHANNEL, SAFE_OFF_WORKERS, REDIS_HOST, REDIS_PORT
 
 
@@ -40,6 +42,9 @@ class SyncServiceCommunicator(BaseSyncServiceCommunicator):
 
     def queue_len(self, client) -> int:
         return self._re.llen(client)
+
+    def clear_cli_channel(self, cli):
+        self._re.delete(cli)
 
     def clear_channel(self):
         self._re.delete(self._WORKERS_CHANNEL, self._SAFE_OFF_WORKERS)

@@ -69,13 +69,11 @@ def move(game_obj):
         return IGNORE()
 
     a = GameData.get_data()
-    """
     if not a.player.turn:
         return (
             [a.player.get_id()],
             ErrorActAnswer("Not your turn to move").get_ret_object(),
         )
-    """
     if x > 1 or x < 0 or y > 1 or y < 0:
         return ([a.player.get_id()], ErrorActAnswer("Wrong Values XY").get_ret_object())
     pos = a.player.get_state()

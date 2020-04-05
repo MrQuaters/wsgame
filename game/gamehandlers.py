@@ -79,4 +79,5 @@ class ActionHandler:  # main class for worker, using routes to handle actions
                     continue
                 r = data.push_to_client_channel(cli, msg)
                 if r == self._queue_len:
+                    data.clear_cli_channel(cli)
                     data.push_to_client_channel(cli, GET_FULL_GAME_STATE)

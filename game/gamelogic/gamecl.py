@@ -77,7 +77,7 @@ class Game:
         self._targets = [x for x in range(target_num)]
         self._room = room
         self.game_state = GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
-        self._curr_step = -1
+        self._curr_step = 1
         self._r_step = -1
 
     def add_player(self, uid: int, fnum: int, role: int):
@@ -109,6 +109,18 @@ class Game:
             if self._clients[a].status == GAME_CONSTANTS["PLAYER_CONNECTED"]:
                 rm.append(a)
         return rm
+
+    def get_penalty_ids(self):
+        rm = []
+        for a in self._clients:
+            if self._clients[a].penalty is not None:
+                rm.append(a)
+        return rm
+
+    def stepping_cli(self):
+        for a in self._clients:
+            if self._clients[a].get_turn() == self._curr_step:
+                return self._clients[a]
 
     def get_step(self):
         return self._curr_step

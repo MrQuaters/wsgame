@@ -19,6 +19,7 @@ class Answer:
             self._gdata["x"] = t.x
             self._gdata["y"] = t.y
             self._gdata["pts"] = gc.points
+            self._gdata["pen"] = gc.penalty
         self._gdata["name"] = gc.name
 
     def get_ret_object(self):
@@ -28,7 +29,7 @@ class Answer:
         return self._gdata
 
 
-class FullAnswer:
+class FullAnswer:  # contains all info about game, described by lot of small_packs
     def __init__(self, myid: int, game: Game):
         self._gdata = {"users": [], "type": ANSWER_PACKAGE_NAMES["big"]}
         t = game.get_active_ids()
@@ -37,9 +38,12 @@ class FullAnswer:
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
                 self._gdata["reg"] = cli.set_reg_data
-            self._gdata["users"].append(Answer(cli).get_object())
+            self._gdata["users"].append(Answer(cli, ACTION_LIST["conn"]).get_object())
 
-        self._gdata["cur_step"] = game.get_step()
+        cli = game.stepping_cli()
+        if cli is not None:
+            self._gdata["users"].append(Answer(cli, ACTION_LIST["step"]).get_object())
+
         self._gdata["game_state"] = game.game_state
 
     def get_ret_object(self):

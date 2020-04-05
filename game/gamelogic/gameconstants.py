@@ -31,6 +31,8 @@ ACTION_LIST = {
     "dc": "disconnected",
     "default": "default",
     "ping": "PING",
+    "pen": "add_penalty",
+    "step": "set_step",
 }
 USER_ACTION_LIST = {"info": "get_info", "reg": "add_name", "move": "new_position"}
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
