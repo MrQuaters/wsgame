@@ -16,6 +16,7 @@ GAME_CONSTANTS = {
     "PLAYER_BANNED": 3,
     "MAX_PLAYERS_IN_ROOM": 6,
     "GAME_STATE_W8_CLIENTS": -1,
+    "GAME_START": 0,
 }
 PARCER_CONSTANTS = {
     "room": "us_room",
@@ -36,3 +37,4 @@ ACTION_LIST = {
 }
 USER_ACTION_LIST = {"info": "get_info", "reg": "add_name", "move": "new_position"}
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
+ADMIN_ACTION_LIST = {"start": "game_start", "step": "next_step"}

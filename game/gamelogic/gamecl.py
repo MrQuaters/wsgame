@@ -36,15 +36,17 @@ class GameClient:
             -1,
         )
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]  # player status
+        self.admin = False  # is admin
+        self.target = None  # player target
+        self.name = None  # player name
+        self.set_reg_data = False  # need register
+        self.points = 5  # player points
+        self.cur_position_num = 0  # cur numeric field position
+        self.direction = 1  # direction
+        self.resources = []  # resources
+        self.open_elevel = False  # did he open elevel
+        self.show_turn = False  # can show turn
         self.penalty = None  # player penalty
-        self.admin = False
-        self.target = None
-        self.name = None
-        self.set_reg_data = False
-        self.points = 5
-        self.cur_position_num = 0
-        self.direction = 1
-        self.res_cards = []
 
     def get_fnum(self):
         return self._fnum
@@ -70,21 +72,25 @@ class Game:
     room: int
     _game_state: int
 
-    def __init__(self, room: int, resources_num: int, target_num: int):
+    def __init__(self, room: int, resources_num: int):
         self._clients = {}
         self._turns = [x for x in range(GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"])]
         self._resources = [x for x in range(resources_num)]
-        self._targets = [x for x in range(target_num)]
         self._room = room
         self.game_state = GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
-        self._curr_step = 1
-        self._r_step = -1
+        self._curr_step = -1
+        self._r_step = None
+
+    def start_game(self):
+        self._curr_step = 0
 
     def add_player(self, uid: int, fnum: int, role: int):
         if self._clients.get(uid) is None:
             if role == USER_ROLES["user"]:
                 a = self._turns.pop(random.randint(0, len(self._turns) - 1))
                 self._clients[uid] = GameClient(uid, a, fnum)
+                if self.game_state != GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+                    self._clients[uid].show_turn = True
             else:
                 self._clients[uid] = Admin(uid, fnum)
         else:
@@ -103,6 +109,9 @@ class Game:
         if self._clients.get(uid) is not None:
             self._clients[uid].status = GAME_CONSTANTS["PLAYER_DISCONNECTED"]
 
+    def get_all_ids(self):
+        return [a for a in self._clients]
+
     def get_active_ids(self):
         rm = []
         for a in self._clients:
@@ -117,13 +126,33 @@ class Game:
                 rm.append(a)
         return rm
 
-    def stepping_cli(self):
+    def stepping_cli(self) -> Optional[GameClient]:
+        if self.game_state == GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+            return None
         for a in self._clients:
             if self._clients[a].get_turn() == self._curr_step:
                 return self._clients[a]
 
     def get_step(self):
         return self._curr_step
+
+    def next_step(self):
+        cli = self.get_active_ids()
+        ls = self._curr_step
+        if len(cli) <= 1:
+            return False
+        while True:
+            self._curr_step = (self._curr_step + 1) % GAME_CONSTANTS[
+                "MAX_PLAYERS_IN_ROOM"
+            ]
+            for a in cli:
+                if (
+                    self._clients[a].get_turn() == self._curr_step
+                    and self._clients[a].penalty is None
+                ):
+                    return True
+            if self._curr_step == ls:
+                return False
 
 
 class SingletonGame:

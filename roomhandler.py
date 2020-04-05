@@ -1,7 +1,6 @@
-from game.worker import App
 from game.gamelogic.gamecl import SingletonGame
-
+from game.worker import App
 
 if __name__ == "__main__":
-    SingletonGame.create_game(18, 32, 50)
+    SingletonGame.create_game(18, 16)
     App.run("rmn18", "ermn18")

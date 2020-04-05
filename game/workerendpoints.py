@@ -82,3 +82,38 @@ def move(game_obj):
 
     pos.set_x_y(x, y)
     return a.active_players, Answer(a.player).get_ret_object()
+
+
+@App.register(GC.ADMIN_ACTION_LIST["start"])
+def game_start(game_obj):
+    a = GameData.get_data()
+    if not a.player.admin:
+        return IGNORE()
+    game = SingletonGame.get_game()
+    if game.game_state != GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+        return [a.player.get_id()], ErrorActAnswer("GameStarted").get_ret_object()
+    game.game_state = GC.GAME_CONSTANTS["GAME_START"]
+    clients = game.get_all_ids()
+    for c in clients:
+        game.get_player(c).show_turn = True
+    game.start_game()
+    ns = game.next_step()
+    if not ns:
+        return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
+    cli = game.stepping_cli()
+    return a.active_players, Answer(cli, GC.ACTION_LIST["step"]).get_ret_object()
+
+
+@App.register(GC.ADMIN_ACTION_LIST["step"])
+def next_step(game_obj):
+    a = GameData.get_data()
+    if not a.player.admin:
+        return IGNORE()
+    game = SingletonGame.get_game()
+    if game.game_state == GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+        return [a.player.get_id()], ErrorActAnswer("GameNotStarted").get_ret_object()
+    ns = game.next_step()
+    if not ns:
+        return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
+    cli = game.stepping_cli()
+    return a.active_players, Answer(cli, GC.ACTION_LIST["step"]).get_ret_object()

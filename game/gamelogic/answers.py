@@ -40,9 +40,16 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
                 self._gdata["reg"] = cli.set_reg_data
             self._gdata["users"].append(Answer(cli, ACTION_LIST["conn"]).get_object())
 
+        self._gdata["elevel"] = None
+        self._gdata["resource"] = None
+
         cli = game.stepping_cli()
         if cli is not None:
             self._gdata["users"].append(Answer(cli, ACTION_LIST["step"]).get_object())
+            if cli.open_elevel and cli.cur_position_num > 0:
+                self._gdata["elevel"] = cli.cur_position_num
+            if len(cli.resources) > 0:
+                self._gdata["resource"] = cli.resources[len(cli.resources) - 1]
 
         self._gdata["game_state"] = game.game_state
 
