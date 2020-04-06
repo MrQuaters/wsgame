@@ -8,7 +8,12 @@ CLIENT_DISCONNECTED_STR = "disconnected"
 CLIENT_DISCONNECTED = '{"action" : "' + CLIENT_DISCONNECTED_STR + '"}'
 
 
-CLIENT_POSITIONING = {"CLIENT_DEFAULT_X": 0.8, "CLIENT_DEFAULT_Y": 0.16}
+CLIENT_POSITIONING = {
+    "CLIENT_DEFAULT_X": 0.8,
+    "CLIENT_DEFAULT_Y": 0.16,
+    "CLIENT_WIN_POS_X": 0.45,
+    "CLIENT_WIN_POS_Y": 0.49,
+}
 GAME_CONSTANTS = {
     "PLAYER_CONNECTED": 0,
     "PLAYER_DISCONNECTED": 1,
@@ -17,6 +22,7 @@ GAME_CONSTANTS = {
     "MAX_PLAYERS_IN_ROOM": 6,
     "GAME_STATE_W8_CLIENTS": -1,
     "GAME_START": 0,
+    "FIELD_LAST_NUM": 16,
 }
 PARCER_CONSTANTS = {
     "room": "us_room",
@@ -34,7 +40,18 @@ ACTION_LIST = {
     "ping": "PING",
     "pen": "add_penalty",
     "step": "set_step",
+    "cubic": "show_cubic",
+    "elvl": "get_elevel",
+    "resource": "get_resource",
 }
-USER_ACTION_LIST = {"info": "get_info", "reg": "add_name", "move": "new_position"}
+USER_ACTION_LIST = {
+    "info": "get_info",
+    "reg": "add_name",
+    "move": "new_position",
+    "cubic": "throw_cubic",
+    "elvl": "get_elevel",
+    "resource": "get_resource",
+}
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
 ADMIN_ACTION_LIST = {"start": "game_start", "step": "next_step"}
+PENALTY_LIST = {"win": "game_win"}

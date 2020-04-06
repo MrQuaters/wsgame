@@ -45,6 +45,7 @@ class GameClient:
         self.direction = 1  # direction
         self.resources = []  # resources
         self.open_elevel = False  # did he open elevel
+        self.cubic_thrown = False  # did he throw cubic
         self.show_turn = False  # can show turn
         self.penalty = None  # player penalty
 
@@ -75,7 +76,7 @@ class Game:
     def __init__(self, room: int, resources_num: int):
         self._clients = {}
         self._turns = [x for x in range(GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"])]
-        self._resources = [x for x in range(resources_num)]
+        self._resources = resources_num
         self._room = room
         self.game_state = GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
         self._curr_step = -1
@@ -111,6 +112,9 @@ class Game:
 
     def get_all_ids(self):
         return [a for a in self._clients]
+
+    def get_resource(self) -> int:
+        return random.randint(1, self._resources)
 
     def get_active_ids(self):
         rm = []
