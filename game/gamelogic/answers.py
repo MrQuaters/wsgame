@@ -57,8 +57,14 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
                     ).get_object()
                 )
 
-        self._gdata["elevel"] = elevel
-        self._gdata["resource"] = resource
+        if elevel is not None:
+            self._gdata["users"].append(
+                Answer(cli, ACTION_LIST["elvl"], elevel).get_object()
+            )
+        if resource is not None:
+            self._gdata["users"].append(
+                Answer(cli, ACTION_LIST["resource"], resource).get_object()
+            )
         self._gdata["game_state"] = game.game_state
 
     def get_ret_object(self):

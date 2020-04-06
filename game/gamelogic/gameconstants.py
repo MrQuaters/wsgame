@@ -32,7 +32,7 @@ PARCER_CONSTANTS = {
     "room_prefix": "rmn",
     "id": "us_id",
 }
-USER_ROLES = {"user": 0, "admin": 1}
+USER_ROLES = {"user": 0, "admin": 1, "spec": 2}
 ACTION_LIST = {
     "conn": "connected",
     "dc": "disconnected",

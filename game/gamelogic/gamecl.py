@@ -43,6 +43,7 @@ class GameClient:
         self.points = 5  # player points
         self.cur_position_num = 0  # cur numeric field position
         self.direction = 1  # direction
+        self.resource_pool = []  # pool of cards
         self.resources = []  # resources
         self.open_elevel = False  # did he open elevel
         self.cubic_thrown = False  # did he throw cubic
@@ -61,6 +62,9 @@ class GameClient:
     def get_id(self):
         return self._uid
 
+    def get_resource(self):
+        return self.resource_pool.pop(random.randint(0, len(self.resource_pool) - 1))
+
 
 class Admin(GameClient):
     def __init__(self, uid: int, fnum):
@@ -75,6 +79,7 @@ class Game:
 
     def __init__(self, room: int, resources_num: int):
         self._clients = {}
+        self._spectrators = {}
         self._turns = [x for x in range(GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"])]
         self._resources = resources_num
         self._room = room
@@ -83,17 +88,22 @@ class Game:
         self._r_step = None
 
     def start_game(self):
-        self._curr_step = 0
+        self._curr_step = GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"] - 1
 
     def add_player(self, uid: int, fnum: int, role: int):
         if self._clients.get(uid) is None:
             if role == USER_ROLES["user"]:
                 a = self._turns.pop(random.randint(0, len(self._turns) - 1))
                 self._clients[uid] = GameClient(uid, a, fnum)
+                self._clients[uid].resource_pool = [
+                    x + 1 for x in range(self._resources)
+                ]
                 if self.game_state != GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
                     self._clients[uid].show_turn = True
-            else:
+            elif role == USER_ROLES["admin"]:
                 self._clients[uid] = Admin(uid, fnum)
+            else:
+                self._spectrators[uid] = GAME_CONSTANTS["PLAYER_CONNECTED"]
         else:
             self._clients[uid].status = GAME_CONSTANTS["PLAYER_CONNECTED"]
 
@@ -109,12 +119,17 @@ class Game:
     def disconnect_player(self, uid: int):
         if self._clients.get(uid) is not None:
             self._clients[uid].status = GAME_CONSTANTS["PLAYER_DISCONNECTED"]
+        else:
+            self._spectrators.pop(uid, None)
+
+    def get_spectrators_and_ids(self):
+        return [x for x in self._spectrators] + self.get_active_ids()
+
+    def get_spectrator(self, uid):
+        return self._spectrators.get(uid)
 
     def get_all_ids(self):
         return [a for a in self._clients]
-
-    def get_resource(self) -> int:
-        return random.randint(1, self._resources)
 
     def get_active_ids(self):
         rm = []
@@ -175,9 +190,10 @@ class SingletonGame:
 
 
 class ComplexData:
-    def __init__(self, plr: GameClient, act: []):
+    def __init__(self, plr: GameClient, act: [], act_all: []):
         self.player = plr
         self.active_players = act
+        self.active_players_spct = act_all
 
 
 class GameData:
@@ -186,7 +202,9 @@ class GameData:
     @classmethod
     def set_new_data(cls, uid: int):
         a = SingletonGame.get_game()
-        GameData._data = ComplexData(a.get_player(uid), a.get_active_ids())
+        GameData._data = ComplexData(
+            a.get_player(uid), a.get_active_ids(), a.get_spectrators_and_ids()
+        )
 
     @classmethod
     def get_data(cls) -> Optional[ComplexData]:
