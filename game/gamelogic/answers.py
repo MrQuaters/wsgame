@@ -1,10 +1,11 @@
 from .gamecl import Game, GameClient
+from .cubic import Cubic
 from .gameconstants import ANSWER_PACKAGE_NAMES, ACTION_LIST
 from .parcer import WorkerParser
 
 
 class Answer:
-    def __init__(self, gc: GameClient, action: str = None, wst=None):
+    def __init__(self, gc: GameClient, action: str = None, wst=None, lowpack=False):
         self._gdata = {"type": ANSWER_PACKAGE_NAMES["def"]}
         if action is None:
             action = ACTION_LIST["default"]
@@ -15,12 +16,12 @@ class Answer:
             return
         self._gdata["fnum"] = gc.get_fnum()
         t = gc.get_state()
-        if t is not None:
+        if t is not None and lowpack == False:
             self._gdata["x"] = t.x
             self._gdata["y"] = t.y
             self._gdata["pts"] = gc.points
             self._gdata["pen"] = gc.penalty
-        self._gdata["name"] = gc.name
+            self._gdata["name"] = gc.name
 
     def get_ret_object(self):
         return WorkerParser.parse_out(self._gdata)
@@ -53,17 +54,46 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
             if cli.cubic_thrown:
                 self._gdata["users"].append(
                     Answer(
-                        cli, ACTION_LIST["cubic"], [cli.get_state().cube_point]
+                        cli,
+                        ACTION_LIST["cubic"],
+                        Cubic.gen_sequence(0, cli.get_state().cube_point),
+                        lowpack=True,
+                    ).get_object()
+                )
+
+            if cli.yncubic_thrown:
+                self._gdata["users"].append(
+                    Answer(
+                        cli,
+                        ACTION_LIST["yncubic"],
+                        Cubic.gen_sequence(0, cli.get_state().yncube_point),
+                        lowpack=True,
+                    ).get_object()
+                )
+
+            if cli.on_pen_field and cli.can_throw_yn:
+                self._gdata["users"].append(
+                    Answer(
+                        cli, ACTION_LIST["can_throw_yn"], True, lowpack=True
+                    ).get_object()
+                )
+
+            if not cli.on_pen_field and not cli.cubic_thrown:
+                self._gdata["users"].append(
+                    Answer(
+                        cli, ACTION_LIST["can_throw_num"], True, lowpack=True
                     ).get_object()
                 )
 
         if elevel is not None:
             self._gdata["users"].append(
-                Answer(cli, ACTION_LIST["elvl"], elevel).get_object()
+                Answer(cli, ACTION_LIST["elvl"], elevel, lowpack=True).get_object()
             )
         if resource is not None:
             self._gdata["users"].append(
-                Answer(cli, ACTION_LIST["resource"], resource).get_object()
+                Answer(
+                    cli, ACTION_LIST["resource"], resource, lowpack=True
+                ).get_object()
             )
         self._gdata["game_state"] = game.game_state
 

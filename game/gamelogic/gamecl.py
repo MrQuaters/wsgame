@@ -15,6 +15,7 @@ class State:
         self.x: float = to_fixed(x, 3)
         self.y: float = to_fixed(y, 3)
         self.cube_point: int = cp
+        self.yncube_point: int = -1
 
     def set_x_y(self, x, y):
         self.x = to_fixed(x, 3)
@@ -42,13 +43,19 @@ class GameClient:
         self.set_reg_data = False  # need register
         self.points = 5  # player points
         self.cur_position_num = 0  # cur numeric field position
-        self.direction = 1  # direction
         self.resource_pool = []  # pool of cards
         self.resources = []  # resources
-        self.open_elevel = False  # did he open elevel
+        self.open_elevel = False
+        self.can_move = True
         self.cubic_thrown = False  # did he throw cubic
+        self.yncubic_thrown = False  # did he throw yn cubic
+        self.can_throw_yn = False
+        self.on_pen_field = False
+        self.yn_time = False
+
         self.show_turn = False  # can show turn
         self.penalty = None  # player penalty
+        self.steps_pen = 0
 
     def get_fnum(self):
         return self._fnum
@@ -71,6 +78,7 @@ class Admin(GameClient):
         GameClient.__init__(self, uid, -1, fnum)
         self._state = None
         self.admin = True
+        self.set_reg_data = True
 
 
 class Game:
@@ -158,6 +166,7 @@ class Game:
     def next_step(self):
         cli = self.get_active_ids()
         ls = self._curr_step
+        t = 0
         if len(cli) <= 1:
             return False
         while True:
@@ -169,9 +178,16 @@ class Game:
                     self._clients[a].get_turn() == self._curr_step
                     and self._clients[a].penalty is None
                 ):
+                    if self._clients[a].steps_pen > 0:
+                        self._clients[a].steps_pen -= 1
+                        continue
                     return True
-            if self._curr_step == ls:
-                return False
+
+            if self._curr_step == ls:  # if no clients to prevent infinite circle
+                if t == 20:
+                    return False
+                else:
+                    t += 1
 
 
 class SingletonGame:

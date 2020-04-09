@@ -41,8 +41,13 @@ ACTION_LIST = {
     "pen": "add_penalty",
     "step": "set_step",
     "cubic": "show_cubic",
+    "yncubic": "show_yncubic",
     "elvl": "get_elevel",
     "resource": "get_resource",
+    "can_throw_num": "set_numcubic",
+    "can_move": "set_move_handle",
+    "can_take_resource": "set_resource_take",
+    "can_throw_yn": "set_yncubic",
 }
 USER_ACTION_LIST = {
     "info": "get_info",
