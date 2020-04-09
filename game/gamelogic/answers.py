@@ -1,6 +1,6 @@
 from .gamecl import Game, GameClient
 from .cubic import Cubic
-from .gameconstants import ANSWER_PACKAGE_NAMES, ACTION_LIST
+from .gameconstants import ANSWER_PACKAGE_NAMES, ACTION_LIST, GAME_CONSTANTS
 from .parcer import WorkerParser
 
 
@@ -39,6 +39,13 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
                 self._gdata["reg"] = cli.set_reg_data
+                if game.game_state == GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+                    self._gdata["users"].append(
+                        Answer(
+                            cli, ACTION_LIST["can_throw_num"], True, lowpack=True
+                        ).get_object()
+                    )
+
             self._gdata["users"].append(Answer(cli, ACTION_LIST["conn"]).get_object())
 
         elevel = None
@@ -82,6 +89,13 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
                 self._gdata["users"].append(
                     Answer(
                         cli, ACTION_LIST["can_throw_num"], True, lowpack=True
+                    ).get_object()
+                )
+
+            if not cli.on_pen_field and cli.can_move:
+                self._gdata["users"].append(
+                    Answer(
+                        cli, ACTION_LIST["can_move"], True, lowpack=True
                     ).get_object()
                 )
 

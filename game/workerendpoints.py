@@ -36,7 +36,7 @@ def disc(uid: int, game_obj):
         return IGNORE()
     return (
         game.get_spectrators_and_ids(),
-        Answer(pl, ACTION_LIST["dc"]).get_ret_object(),
+        Answer(pl, GC.ACTION_LIST["dc"]).get_ret_object(),
     )
 
 
@@ -84,7 +84,7 @@ def move(game_obj):
         return IGNORE()
 
     a = GameData.get_data()
-    if not a.player.turn or not a.player.can_move or a.player.on_pen_field:
+    if not a.player.turn or not a.player.can_move:
         return [a.player.get_id()], Answer(a.player).get_ret_object()
     if x > 1 or x < 0 or y > 1 or y < 0:
         return [a.player.get_id()], ErrorActAnswer("Wrong Values XY").get_ret_object()
@@ -153,11 +153,17 @@ def cubic(game_obj):
 
     else:
         if a.player.show_turn:
+            DelayedSend.set_send(
+                [a.player.get_id()],
+                Answer(
+                    a.player, GC.ACTION_LIST["can_throw_num"], False, True
+                ).get_ret_object(),
+            )
             return (
                 [a.player.get_id()],
                 Answer(
                     a.player,
-                    ACTION_LIST["cubic"],
+                    GC.ACTION_LIST["cubic"],
                     Cubic.gen_sequence(0, a.player.get_turn() + 1),
                 ).get_ret_object(),
             )
@@ -167,7 +173,7 @@ def cubic(game_obj):
     sec = Cubic.gen_sequence(random.randint(8, 15), t)
     DelayedSend.set_send(
         a.active_players_spct,
-        Answer(a.player, ACTION_LIST["cubic"], sec).get_ret_object(),
+        Answer(a.player, GC.ACTION_LIST["cubic"], sec).get_ret_object(),
     )
     return (
         [a.player.get_id()],
