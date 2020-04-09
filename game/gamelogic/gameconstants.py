@@ -56,7 +56,8 @@ USER_ACTION_LIST = {
     "cubic": "throw_cubic",
     "elvl": "get_elevel",
     "resource": "get_resource",
+    "ycubic": "throw_ycubic",
 }
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
-ADMIN_ACTION_LIST = {"start": "game_start", "step": "next_step"}
+ADMIN_ACTION_LIST = {"start": "game_start", "step": "next_step", "allow_yn": "allow_yn"}
 PENALTY_LIST = {"win": "game_win"}

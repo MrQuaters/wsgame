@@ -126,6 +126,7 @@ def cubic(game_obj):
             ErrorActAnswer("AdminCannotThrowCubic").get_ret_object(),
         )
     t = 0
+    send_to = []
     if a.player.turn:  # player can move
         if a.player.cubic_thrown or a.player.on_pen_field:
             return (
@@ -150,6 +151,7 @@ def cubic(game_obj):
                     a.player, GC.ACTION_LIST["can_take_resource"], True, True
                 ).get_ret_object(),
             )
+            send_to = a.active_players_spct
 
     else:
         if a.player.show_turn:
@@ -169,11 +171,11 @@ def cubic(game_obj):
             )
         a.player.show_turn = True
         t = a.player.get_turn() + 1
+        send_to = [a.player.get_id()]
 
     sec = Cubic.gen_sequence(random.randint(8, 15), t)
     DelayedSend.set_send(
-        a.active_players_spct,
-        Answer(a.player, GC.ACTION_LIST["cubic"], sec).get_ret_object(),
+        send_to, Answer(a.player, GC.ACTION_LIST["cubic"], sec).get_ret_object()
     )
     return (
         [a.player.get_id()],
@@ -202,6 +204,59 @@ def get_resource(game_obj):
     return (
         a.active_players_spct,
         Answer(a.player, GC.ACTION_LIST["resource"], rs).get_ret_object(),
+    )
+
+
+@App.register(GC.USER_ACTION_LIST["ycubic"])
+def ycubic(game_obj):
+    a = GameData.get_data()
+    if not a.player.turn:
+        return IGNORE()
+    if (
+        not a.player.on_pen_field
+        or not a.player.can_throw_yn
+        or a.player.yncubic_thrown
+    ):
+        return ([a.player.get_id()], ErrorActAnswer("CantThrowYCubic").get_ret_object())
+    a.player.yncubic_thrown = True
+    DelayedSend.set_send(
+        [a.player.get_id()],
+        Answer(a.player, GC.ACTION_LIST["can_throw_yn"], False, True).get_ret_object(),
+    )
+    t = random.randint(1, 6)
+    DelayedSend.set_send(
+        a.active_players_spct,
+        Answer(
+            a.player,
+            GC.ACTION_LIST["yncubic"],
+            Cubic.gen_sequence(random.randint(4, 8), t),
+        ).get_ret_object(),
+    )
+    t = t % 2
+    a.player.can_move = True
+
+    if t == 0:
+        a.player.cur_position_num = 0
+        return (
+            [a.player.get_id()],
+            Answer(a.player, GC.ACTION_LIST["can_move"], True, True).get_ret_object(),
+        )
+
+    if a.player.yn_time is None:
+        a.player.cur_position_num = -1 * a.player.cur_position_num
+        a.player.yn_time = True
+        return (
+            [a.player.get_id()],
+            Answer(a.player, GC.ACTION_LIST["can_move"], True, True).get_ret_object(),
+        )
+
+    a.player.cur_position_num = abs(a.player.cur_position_num)
+    a.player.on_pen_field = False
+    a.player.yn_time = None
+    a.player.can_move = False
+    return (
+        [a.player.get_id()],
+        Answer(a.player, GC.ACTION_LIST["can_throw_num"], True, True).get_ret_object(),
     )
 
 
@@ -253,3 +308,25 @@ def next_step(game_obj):
             Answer(cli, GC.ACTION_LIST["can_throw_num"], True, True).get_ret_object(),
         )
     return a.active_players_spct, Answer(cli, GC.ACTION_LIST["step"]).get_ret_object()
+
+
+@App.register(GC.ADMIN_ACTION_LIST["allow_yn"])
+def allow_yn(game_obj):
+    a = GameData.get_data()
+    if not a.player.admin:
+        return IGNORE()
+    game = SingletonGame.get_game()
+    cli = game.stepping_cli()
+    if cli is None:
+        return (
+            [a.player.get_id()],
+            ErrorActAnswer("NoActiveCliOrGameNotStarted").get_ret_object(),
+        )
+    if not cli.on_pen_field:
+        return [a.player.get_id()], ErrorActAnswer("CliNotOnPenField").get_ret_object()
+    cli.can_throw_yn = True
+    DelayedSend.set_send([a.player.get_id()], ErrorActAnswer("Done").get_ret_object())
+    return (
+        [cli.get_id()],
+        Answer(cli, GC.ACTION_LIST["can_throw_yn"], True, True).get_ret_object(),
+    )
