@@ -69,5 +69,6 @@ ADMIN_ACTION_LIST = {
     "step": "next_step",
     "allow_yn": "allow_yn",
     "ban_unban": "ban_unban",
+    "session": "make_session",
 }
 PENALTY_LIST = {"win": "game_win", "stop": "player_stop"}

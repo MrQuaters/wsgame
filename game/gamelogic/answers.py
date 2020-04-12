@@ -39,7 +39,10 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
             if a == myid:
                 self._gdata["myf"] = cli.get_fnum()
                 self._gdata["reg"] = cli.set_reg_data
-                if game.game_state == GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+                if (
+                    game.game_state == GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
+                    and not cli.admin
+                ):
                     self._gdata["users"].append(
                         Answer(
                             cli, ACTION_LIST["can_throw_num"], True, lowpack=True

@@ -270,7 +270,7 @@ def get_resource(game_obj):
     a = GameData.get_data()
     if not a.player.turn:
         return IGNORE()
-    if a.player.points <= 0:
+    if a.player.points <= 0 or a.player.open_resource:
         DelayedSend.set_send(
             [a.player.get_id()],
             Answer(
@@ -279,6 +279,7 @@ def get_resource(game_obj):
         )
         return [a.player.get_id()], ErrorActAnswer("YouHaveNoPoints").get_ret_object()
     a.player.points -= 1
+    a.player.open_resource = True
     rs = a.player.get_resource()
     a.player.resources.append(rs)
     return (
@@ -379,6 +380,7 @@ def next_step(game_obj):
     cli.open_elevel = False
     cli.cubic_thrown = False
     cli.yncubic_thrown = False
+    cli.open_resource = False
     if not cli.on_pen_field:
         DelayedSend.set_send(
             [cli.get_id()],
@@ -438,3 +440,21 @@ def bun_unban(game_obj):
         )
     else:
         return (game.get_spectrators_and_ids(), Answer(cli).get_ret_object())
+
+
+@App.register(GC.ADMIN_ACTION_LIST["session"])
+def session(game_obj):
+    a = GameData.get_data()
+    if not a.player.admin:
+        return IGNORE()
+    game = SingletonGame.get_game()
+    cli = game.stepping_cli()
+    if cli is None:
+        return (
+            [a.player.get_id()],
+            ErrorActAnswer("NoActiveCliOrGameNotStarted").get_ret_object(),
+        )
+    if cli.points < 3:
+        return ([a.player.get_id()], ErrorActAnswer("NotEnoughPoints").get_ret_object())
+    cli.points -= 3
+    return a.active_players_spct, Answer(cli).get_ret_object()

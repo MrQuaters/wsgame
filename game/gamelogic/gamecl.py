@@ -48,6 +48,7 @@ class GameClient:
         self.rune = None
         self.resources = []  # resources
         self.open_elevel = False
+        self.open_resource = False
         self.can_move = True
         self.cubic_thrown = False  # did he throw cubic
         self.yncubic_thrown = False  # did he throw yn cubic
