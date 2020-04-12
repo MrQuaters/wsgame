@@ -41,13 +41,15 @@ ACTION_LIST = {
     "pen": "add_penalty",
     "step": "set_step",
     "cubic": "show_cubic",
-    "yncubic": "show_yncubic",
+    "yncubic": "show_ycubic",
     "elvl": "get_elevel",
     "resource": "get_resource",
     "can_throw_num": "set_numcubic",
     "can_move": "set_move_handle",
     "can_take_resource": "set_resource_take",
     "can_throw_yn": "set_yncubic",
+    "card_data": "ret_card_data",
+    "target_data": "ret_card_data",
 }
 USER_ACTION_LIST = {
     "info": "get_info",
@@ -57,7 +59,9 @@ USER_ACTION_LIST = {
     "elvl": "get_elevel",
     "resource": "get_resource",
     "ycubic": "throw_ycubic",
+    "card_data": "get_card_data",
+    "target_data": "get_player_target",
 }
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
 ADMIN_ACTION_LIST = {"start": "game_start", "step": "next_step", "allow_yn": "allow_yn"}
-PENALTY_LIST = {"win": "game_win"}
+PENALTY_LIST = {"win": "game_win", "stop": "player_stop"}

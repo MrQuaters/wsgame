@@ -56,6 +56,7 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
             self._gdata["users"].append(Answer(cli, ACTION_LIST["step"]).get_object())
             if cli.open_elevel and cli.cur_position_num > 0:
                 elevel = cli.cur_position_num
+
             if len(cli.resources) > 0:
                 resource = cli.resources[len(cli.resources) - 1]
             if cli.cubic_thrown:
@@ -78,28 +79,42 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
                     ).get_object()
                 )
 
-            if cli.on_pen_field and cli.can_throw_yn:
+            if cli.rune is not None:
+                self._gdata["users"].append(
+                    Answer(
+                        cli, ACTION_LIST["elvl"], cli.rune, lowpack=True
+                    ).get_object()
+                )
+
+            if cli.on_pen_field and cli.can_throw_yn and cli.get_id() == myid:
                 self._gdata["users"].append(
                     Answer(
                         cli, ACTION_LIST["can_throw_yn"], True, lowpack=True
                     ).get_object()
                 )
 
-            if not cli.on_pen_field and not cli.cubic_thrown:
+            if not cli.on_pen_field and not cli.cubic_thrown and cli.get_id() == myid:
                 self._gdata["users"].append(
                     Answer(
                         cli, ACTION_LIST["can_throw_num"], True, lowpack=True
                     ).get_object()
                 )
 
-            if not cli.on_pen_field and cli.can_move:
+            if cli.can_move and cli.get_id() == myid:
                 self._gdata["users"].append(
                     Answer(
                         cli, ACTION_LIST["can_move"], True, lowpack=True
                     ).get_object()
                 )
 
-        if elevel is not None:
+            if cli.get_id() == myid:
+                self._gdata["users"].append(
+                    Answer(
+                        cli, ACTION_LIST["can_take_resource"], True, lowpack=True
+                    ).get_ret_object()
+                )
+
+        if elevel is not None and cli.rune is None:
             self._gdata["users"].append(
                 Answer(cli, ACTION_LIST["elvl"], elevel, lowpack=True).get_object()
             )

@@ -44,6 +44,8 @@ class GameClient:
         self.points = 5  # player points
         self.cur_position_num = 0  # cur numeric field position
         self.resource_pool = []  # pool of cards
+        self.rune_pool = []
+        self.rune = None
         self.resources = []  # resources
         self.open_elevel = False
         self.can_move = True
@@ -51,7 +53,8 @@ class GameClient:
         self.yncubic_thrown = False  # did he throw yn cubic
         self.can_throw_yn = False
         self.on_pen_field = False
-        self.yn_time = False
+        self.yn_time = None
+        self.back_flag = False
 
         self.show_turn = False  # can show turn
         self.penalty = None  # player penalty
@@ -72,6 +75,9 @@ class GameClient:
     def get_resource(self):
         return self.resource_pool.pop(random.randint(0, len(self.resource_pool) - 1))
 
+    def get_rune(self):
+        return self.rune_pool.pop(random.randint(0, len(self.rune_pool) - 1))
+
 
 class Admin(GameClient):
     def __init__(self, uid: int, fnum):
@@ -85,11 +91,12 @@ class Game:
     room: int
     _game_state: int
 
-    def __init__(self, room: int, resources_num: int):
+    def __init__(self, room: int, resources_num: int, runes_num: int):
         self._clients = {}
         self._spectrators = {}
         self._turns = [x for x in range(GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"])]
         self._resources = resources_num
+        self._runes_count = runes_num
         self._room = room
         self.game_state = GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
         self._curr_step = -1
@@ -105,6 +112,9 @@ class Game:
                 self._clients[uid] = GameClient(uid, a, fnum)
                 self._clients[uid].resource_pool = [
                     x + 1 for x in range(self._resources)
+                ]
+                self._clients[uid].rune_pool = [
+                    x + 101 for x in range(self._runes_count)
                 ]
                 if self.game_state != GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
                     self._clients[uid].show_turn = True
@@ -123,6 +133,11 @@ class Game:
                 if a.get_turn() == self._curr_step:
                     a.turn = True
         return a
+
+    def get_player_fnum(self, fnum) -> Optional[GameClient]:
+        for a in self._clients:
+            if self._clients[a].get_fnum() == fnum:
+                return self._clients[a]
 
     def disconnect_player(self, uid: int):
         if self._clients.get(uid) is not None:
