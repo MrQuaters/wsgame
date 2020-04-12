@@ -144,12 +144,17 @@ def move(game_obj):
     pos.set_x_y(x, y)
     post = a.player.cur_position_num
     print(post)
-    if is_in_field_num(x + 0.036, y + 0.025, post):
+    if is_in_field_num(x + 0.036, y, post):
         a.player.can_move = False
         if post == 17:
             a.player.penalty = GC.PENALTY_LIST["win"]
         elif post == 0:
             a.player.penalty = GC.PENALTY_LIST["stop"]
+            a.player.on_pen_field = False
+            a.player.back_flag = False
+            a.player.cubic_thrown = False
+            a.player.rune = None
+
         elif post == 2 or post == 10 or post == 13 or post == 16 or post == 6:
             if a.player.back_flag:
                 a.player.on_pen_field = False
@@ -291,6 +296,7 @@ def ycubic(game_obj):
         not a.player.on_pen_field
         or not a.player.can_throw_yn
         or a.player.yncubic_thrown
+        or a.player.can_move
     ):
         return ([a.player.get_id()], ErrorActAnswer("CantThrowYCubic").get_ret_object())
     a.player.yncubic_thrown = True
@@ -337,16 +343,18 @@ def game_start(game_obj):
     game = SingletonGame.get_game()
     if game.game_state != GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
         return [a.player.get_id()], ErrorActAnswer("GameStarted").get_ret_object()
-    game.game_state = GC.GAME_CONSTANTS["GAME_START"]
     clients = game.get_all_ids()
+    game.game_state = GC.GAME_CONSTANTS["GAME_START"]
     for c in clients:
         game.get_player(c).show_turn = True
     game.start_game()
     ns = game.next_step()
     if not ns:
+        game.game_state = GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
         return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
     cli = game.stepping_cli()
     cli.cubic_thrown = False
+
     DelayedSend.set_send(
         [cli.get_id()],
         Answer(cli, GC.ACTION_LIST["can_throw_num"], True, True).get_ret_object(),
@@ -371,7 +379,6 @@ def next_step(game_obj):
     cli.open_elevel = False
     cli.cubic_thrown = False
     cli.yncubic_thrown = False
-    cli.rune = None
     if not cli.on_pen_field:
         DelayedSend.set_send(
             [cli.get_id()],
@@ -394,9 +401,40 @@ def allow_yn(game_obj):
         )
     if not cli.on_pen_field:
         return [a.player.get_id()], ErrorActAnswer("CliNotOnPenField").get_ret_object()
+    if cli.penalty is not None:
+        return [a.player.get_id()], ErrorActAnswer("CliHavePenalty").get_ret_object()
+    if cli.can_move:
+        return [a.player.get_id()], ErrorActAnswer("PlayerStillMoving").get_ret_object()
     cli.can_throw_yn = True
     DelayedSend.set_send([a.player.get_id()], ErrorActAnswer("Done").get_ret_object())
     return (
         [cli.get_id()],
         Answer(cli, GC.ACTION_LIST["can_throw_yn"], True, True).get_ret_object(),
     )
+
+
+@App.register(GC.ADMIN_ACTION_LIST["ban_unban"])
+def bun_unban(game_obj):
+    a = GameData.get_data()
+    if not a.player.admin:
+        return IGNORE()
+    fnm = game_obj.get("fnm", None)
+    if fnm is None:
+        return IGNORE()
+    game = SingletonGame.get_game()
+    cli = game.get_player_fnum(fnm)
+    if cli is None:
+        return IGNORE()
+    if cli.penalty is None:
+        cli.penalty = GC.PENALTY_LIST["stop"]
+    elif cli.penalty == GC.PENALTY_LIST["win"]:
+        return IGNORE()
+    else:
+        cli.penalty = None
+    if cli.penalty is None:
+        return (
+            game.get_spectrators_and_ids(),
+            Answer(cli, GC.ACTION_LIST["rem_pen"]).get_ret_object(),
+        )
+    else:
+        return (game.get_spectrators_and_ids(), Answer(cli).get_ret_object())

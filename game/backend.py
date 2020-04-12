@@ -25,7 +25,6 @@ async def set_out_message_handler():  # circle that gets data from worker proces
                 try:
                     await cli_ws.send_text(parser.parse_out(user_data[1]))
                 except BaseException:
-                    client_holder.task_to_del_client(user_data[0])
                     try:
                         await cli_ws.close()
                     except BaseException:

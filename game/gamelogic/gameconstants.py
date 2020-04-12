@@ -50,6 +50,7 @@ ACTION_LIST = {
     "can_throw_yn": "set_yncubic",
     "card_data": "ret_card_data",
     "target_data": "ret_card_data",
+    "rem_pen": "pentalty_remove",
 }
 USER_ACTION_LIST = {
     "info": "get_info",
@@ -63,5 +64,10 @@ USER_ACTION_LIST = {
     "target_data": "get_player_target",
 }
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
-ADMIN_ACTION_LIST = {"start": "game_start", "step": "next_step", "allow_yn": "allow_yn"}
+ADMIN_ACTION_LIST = {
+    "start": "game_start",
+    "step": "next_step",
+    "allow_yn": "allow_yn",
+    "ban_unban": "ban_unban",
+}
 PENALTY_LIST = {"win": "game_win", "stop": "player_stop"}
