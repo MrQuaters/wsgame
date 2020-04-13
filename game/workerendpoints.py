@@ -355,7 +355,10 @@ def game_start(game_obj):
     DelayedSend.set_send(
         a.active_players_spct,
         Answer(
-            cli, GC.ACTION_LIST["card_data"], print_step_set(game), lowpack=True
+            cli,
+            GC.ACTION_LIST["card_data"],
+            print_step_set(game, "ИГРА НАЧАЛАСЬ! Порядок ходов:\n"),
+            lowpack=True,
         ).get_ret_object(),
     )
     for c in clients:

@@ -143,9 +143,12 @@ class ErrorActAnswer:
         return WorkerParser.parse_out(self._gdata)
 
 
-def print_step_set(gm: Game):
+def print_step_set(gm: Game, prefix: str = None, postfix: str = None):
     tr = {}
-    rt_string = "Ходит(число на кубике): Имя" + "\n"
+    rt_string = ""
+    if prefix is not None:
+        rt_string += prefix
+    rt_string += "Ходит(число на кубике): Имя" + "\n"
     cli_pull = []
     clients = gm.get_active_ids()
     for a in clients:
@@ -167,5 +170,9 @@ def print_step_set(gm: Game):
             rt_string += a[2]
         rt_string += "\n"
         i += 1
+
+    if postfix is not None:
+        rt_string += postfix
+
     tr["err"] = rt_string
     return tr
