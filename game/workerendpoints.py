@@ -1,5 +1,5 @@
 import game.gamelogic.gameconstants as GC
-from game.gamelogic.answers import Answer, FullAnswer, ErrorActAnswer
+from game.gamelogic.answers import Answer, FullAnswer, ErrorActAnswer, print_step_set
 from game.gamelogic.gamecl import GameData, SingletonGame
 from game.gamehandlers import DelayedSend
 from game.gamelogic.positioning import is_in_field_num
@@ -346,16 +346,21 @@ def game_start(game_obj):
         return [a.player.get_id()], ErrorActAnswer("GameStarted").get_ret_object()
     clients = game.get_all_ids()
     game.game_state = GC.GAME_CONSTANTS["GAME_START"]
-    for c in clients:
-        game.get_player(c).show_turn = True
     game.start_game()
     ns = game.next_step()
     if not ns:
         game.game_state = GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
         return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
     cli = game.stepping_cli()
+    DelayedSend.set_send(
+        a.active_players_spct,
+        Answer(
+            cli, GC.ACTION_LIST["card_data"], print_step_set(game), lowpack=True
+        ).get_ret_object(),
+    )
+    for c in clients:
+        game.get_player(c).show_turn = True
     cli.cubic_thrown = False
-
     DelayedSend.set_send(
         [cli.get_id()],
         Answer(cli, GC.ACTION_LIST["can_throw_num"], True, True).get_ret_object(),

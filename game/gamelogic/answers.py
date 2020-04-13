@@ -141,3 +141,31 @@ class ErrorActAnswer:
 
     def get_ret_object(self):
         return WorkerParser.parse_out(self._gdata)
+
+
+def print_step_set(gm: Game):
+    tr = {}
+    rt_string = "Ходит(число на кубике): Имя" + "\n"
+    cli_pull = []
+    clients = gm.get_active_ids()
+    for a in clients:
+        cli = gm.get_player(a)
+        if cli.admin:
+            continue
+        cli_pull.append([cli.get_turn(), cli.show_turn, cli.name])
+    if len(cli_pull) == 0:
+        return None
+    cli_pull.sort(key=lambda pl: pl[0])
+    i = 1
+    for a in cli_pull:
+        rt_string += str(i)
+        ct = a[0] + 1
+        if not a[1]:
+            ct = "-"
+        rt_string += "(" + str(ct) + "): "
+        if a[2] is not None:
+            rt_string += a[2]
+        rt_string += "\n"
+        i += 1
+    tr["err"] = rt_string
+    return tr
