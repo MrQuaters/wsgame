@@ -48,7 +48,7 @@ class GameClient:
         self.rune = None
         self.resources = []  # resources
         self.open_elevel = False
-        self.open_resource = False
+        self.open_resource = True
         self.can_move = True
         self.cubic_thrown = False  # did he throw cubic
         self.yncubic_thrown = False  # did he throw yn cubic
@@ -56,6 +56,7 @@ class GameClient:
         self.on_pen_field = False
         self.yn_time = None
         self.back_flag = False
+        self.thinking = False
 
         self.show_turn = False  # can show turn
         self.penalty = None  # player penalty

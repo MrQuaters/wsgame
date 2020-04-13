@@ -62,6 +62,7 @@ USER_ACTION_LIST = {
     "ycubic": "throw_ycubic",
     "card_data": "get_card_data",
     "target_data": "get_player_target",
+    "anim_end": "animation_end",
 }
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
 ADMIN_ACTION_LIST = {
@@ -70,5 +71,6 @@ ADMIN_ACTION_LIST = {
     "allow_yn": "allow_yn",
     "ban_unban": "ban_unban",
     "session": "make_session",
+    "allow_res": "allow_res",
 }
 PENALTY_LIST = {"win": "game_win", "stop": "player_stop"}
