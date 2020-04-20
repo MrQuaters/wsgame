@@ -1,4 +1,4 @@
-from .gamecl import Game, GameClient
+from .gamecl import Game, GameClient, PlayerState
 from .cubic import Cubic
 from .gameconstants import ANSWER_PACKAGE_NAMES, ACTION_LIST, GAME_CONSTANTS
 from .parcer import WorkerParser
@@ -30,6 +30,60 @@ class Answer:
         return self._gdata
 
 
+class CliRetPosAnswer:
+    def __init__(self, cli: GameClient):
+        self._vals = []
+        self._pub_vals = []
+        self._cli = cli
+        if cli.open_elevel:
+            self._pub_vals.append(("elvl", abs(cli.cur_position_num), True))
+        if cli.rune is not None:
+            self._pub_vals.append(("elvl", abs(cli.rune), True))
+        if cli.open_resource:
+            self._pub_vals.append(("resource", cli.resources, True))
+        if cli.cubic_thrown:
+            rp = Cubic.gen_sequence(0, cli.get_state().cube_point)
+            self._pub_vals.append(("cubic", rp, True))
+        if cli.yncubic_thrown:
+            rp = Cubic.gen_sequence(0, cli.get_state().yncube_point)
+            self._pub_vals.append(("yncubic", rp, True))
+        if cli.player_state == PlayerState.set_yncubic_state():
+            self._vals.append(("can_throw_yn", True, True))
+        elif cli.player_state == PlayerState.set_moving_state():
+            self._vals.append(("can_move", True, True))
+        elif cli.player_state == PlayerState.set_numcubic_state():
+            self._vals.append(("can_throw_num", True, True))
+        if (
+            cli.player_state == PlayerState.set_thinking_state()
+            and cli.can_take_resource
+        ):
+            self._vals.append(("can_take_resource", True, True))
+
+    def get_my_ret_obj(self):
+        ro = []
+        for a in self._vals:
+            ro.append(Answer(self._cli, ACTION_LIST[a[0]], a[1], a[2]).get_ret_object())
+        return ro
+
+    def get_my_obj(self):
+        ro = []
+        for a in self._vals:
+            ro.append(Answer(self._cli, ACTION_LIST[a[0]], a[1], a[2]).get_object())
+        return ro
+
+    def get_pub_ret_obj(self):
+        ro = []
+        for a in self._pub_vals:
+            ro.append(Answer(self._cli, ACTION_LIST[a[0]], a[1], a[2]).get_ret_object())
+        return ro
+
+    def get_pub_obj(self):
+        ro = []
+        for a in self._pub_vals:
+            ro.append(Answer(self._cli, ACTION_LIST[a[0]], a[1], a[2]).get_object())
+        return ro
+
+
 class FullAnswer:  # contains all info about game, described by lot of small_packs
     def __init__(self, myid: int, game: Game):
         self._gdata = {"users": [], "type": ANSWER_PACKAGE_NAMES["big"]}
@@ -57,76 +111,9 @@ class FullAnswer:  # contains all info about game, described by lot of small_pac
         cli = game.stepping_cli()
         if cli is not None:
             self._gdata["users"].append(Answer(cli, ACTION_LIST["step"]).get_object())
-            if cli.open_elevel and cli.cur_position_num > 0:
-                elevel = cli.cur_position_num
-
-            if len(cli.resources) > 0:
-                resource = cli.resources[len(cli.resources) - 1]
-            if cli.cubic_thrown:
-                self._gdata["users"].append(
-                    Answer(
-                        cli,
-                        ACTION_LIST["cubic"],
-                        Cubic.gen_sequence(0, cli.get_state().cube_point),
-                        lowpack=True,
-                    ).get_object()
-                )
-
-            if cli.yncubic_thrown:
-                self._gdata["users"].append(
-                    Answer(
-                        cli,
-                        ACTION_LIST["yncubic"],
-                        Cubic.gen_sequence(0, cli.get_state().yncube_point),
-                        lowpack=True,
-                    ).get_object()
-                )
-
-            if cli.rune is not None:
-                self._gdata["users"].append(
-                    Answer(
-                        cli, ACTION_LIST["elvl"], cli.rune, lowpack=True
-                    ).get_object()
-                )
-
-            if cli.on_pen_field and cli.can_throw_yn and cli.get_id() == myid:
-                self._gdata["users"].append(
-                    Answer(
-                        cli, ACTION_LIST["can_throw_yn"], True, lowpack=True
-                    ).get_object()
-                )
-
-            if not cli.on_pen_field and not cli.cubic_thrown and cli.get_id() == myid:
-                self._gdata["users"].append(
-                    Answer(
-                        cli, ACTION_LIST["can_throw_num"], True, lowpack=True
-                    ).get_object()
-                )
-
-            if cli.can_move and cli.get_id() == myid:
-                self._gdata["users"].append(
-                    Answer(
-                        cli, ACTION_LIST["can_move"], True, lowpack=True
-                    ).get_object()
-                )
-
+            self._gdata["users"] += CliRetPosAnswer(cli).get_pub_obj()
             if cli.get_id() == myid:
-                self._gdata["users"].append(
-                    Answer(
-                        cli, ACTION_LIST["can_take_resource"], True, lowpack=True
-                    ).get_ret_object()
-                )
-
-        if elevel is not None and cli.rune is None:
-            self._gdata["users"].append(
-                Answer(cli, ACTION_LIST["elvl"], elevel, lowpack=True).get_object()
-            )
-        if resource is not None:
-            self._gdata["users"].append(
-                Answer(
-                    cli, ACTION_LIST["resource"], resource, lowpack=True
-                ).get_object()
-            )
+                self._gdata["users"] += CliRetPosAnswer(cli).get_my_obj()
         self._gdata["game_state"] = game.game_state
 
     def get_ret_object(self):
@@ -156,16 +143,17 @@ def print_step_set(gm: Game, prefix: str = None, postfix: str = None):
         if cli.admin:
             continue
         cli_pull.append([cli.get_turn(), cli.show_turn, cli.name])
-    if len(cli_pull) == 0:
-        return None
-    cli_pull.sort(key=lambda pl: pl[0])
+    if len(cli_pull) != 0:
+        cli_pull.sort(key=lambda pl: pl[0])
     i = 1
     for a in cli_pull:
-        rt_string += str(i)
-        ct = a[0] + 1
         if not a[1]:
             ct = "-"
-        rt_string += "(" + str(ct) + "): "
+            if gm.game_state == GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
+                continue
+        else:
+            ct = a[0] + 1
+        rt_string += str(i) + "(" + str(ct) + "): "
         if a[2] is not None:
             rt_string += a[2]
         rt_string += "\n"

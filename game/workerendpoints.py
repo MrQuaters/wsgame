@@ -1,6 +1,6 @@
 import game.gamelogic.gameconstants as GC
 from game.gamelogic.answers import Answer, FullAnswer, ErrorActAnswer, print_step_set
-from game.gamelogic.gamecl import GameData, SingletonGame
+from game.gamelogic.gamecl import GameData, SingletonGame, PlayerState
 from game.gamehandlers import DelayedSend
 from game.gamelogic.positioning import is_in_field_num
 from game.gamelogic.gameconstants import ACTION_LIST
@@ -65,19 +65,17 @@ def get_card_data(uid, game_obj):
     if player.penalty is not None:
         return IGNORE()
     answ = {}
-    if player.open_elevel or player.on_pen_field:
+    if player.open_elevel:
         answ["elvl"] = abs(player.cur_position_num)
-    if player.on_pen_field and player.rune is not None:
+    if player.rune is not None:
         answ["rune"] = player.rune
-    if player.resources:
-        answ["res"] = player.resources
+    if player.resources is not None:
+        answ["res"] = [player.resources]
     if len(answ) == 0:
         answ["err"] = "Пусто"
     return (
         [uid],
-        Answer(
-            player, GC.ACTION_LIST["card_data"], answ, lowpack=True
-        ).get_ret_object(),
+        Answer(None, GC.ACTION_LIST["card_data"], answ, lowpack=True).get_ret_object(),
     )
 
 
@@ -97,9 +95,18 @@ def target_data(uid, game_obj):
         answ["err"] = player.target
     return (
         [uid],
-        Answer(
-            player, GC.ACTION_LIST["card_data"], answ, lowpack=True
-        ).get_ret_object(),
+        Answer(None, GC.ACTION_LIST["card_data"], answ, lowpack=True).get_ret_object(),
+    )
+
+
+@App.register_middlepoint(GC.USER_ACTION_LIST["steps"])
+def steps(uid, game_obj):
+    game = SingletonGame.get_game()
+    t = print_step_set(game)
+
+    return (
+        [uid],
+        Answer(None, GC.ACTION_LIST["card_data"], t, lowpack=True).get_ret_object(),
     )
 
 
@@ -134,7 +141,7 @@ def move(game_obj):
         return IGNORE()
 
     a = GameData.get_data()
-    if not a.player.turn or not a.player.can_move:
+    if not a.player.turn or a.player.player_state != PlayerState.set_moving_state():
         return [a.player.get_id()], Answer(a.player).get_ret_object()
     if x > 1 or x < 0 or y > 1 or y < 0:
         return [a.player.get_id()], ErrorActAnswer("Wrong Values XY").get_ret_object()
@@ -143,39 +150,17 @@ def move(game_obj):
         return IGNORE()
     pos.set_x_y(x, y)
     post = a.player.cur_position_num
-    print(post)
     if is_in_field_num(x + 0.036, y, post):
-        a.player.can_move = False
-        a.player.thinking = False
+        a.player.player_state = PlayerState.set_thinking_state()
         if post == 17:
             a.player.penalty = GC.PENALTY_LIST["win"]
         elif post == 0:
             a.player.penalty = GC.PENALTY_LIST["stop"]
-            a.player.on_pen_field = False
-            a.player.back_flag = False
             a.player.cubic_thrown = False
             a.player.rune = None
-
-        elif post == 2 or post == 10 or post == 13 or post == 16 or post == 6:
-            if a.player.back_flag:
-                a.player.on_pen_field = False
-                a.player.back_flag = False
-                a.player.cubic_thrown = False
-                a.player.rune = None
-                DelayedSend.set_send(
-                    [a.player.get_id()],
-                    Answer(
-                        a.player, GC.ACTION_LIST["can_throw_num"], True, True
-                    ).get_ret_object(),
-                )
-
-            else:
-                a.player.on_pen_field = True
-                a.player.open_elevel = True
-                DelayedSend.set_send(
-                    a.active_players_spct,
-                    Answer(a.player, GC.ACTION_LIST["elvl"], post).get_ret_object(),
-                )
+            a.player.open_elevel = False
+            a.player.resources = None
+            a.player.open_resource = False
 
         elif post == -2 or post == -10 or post == -13 or post == -16 or post == -6:
             rn = a.player.get_rune()
@@ -187,7 +172,6 @@ def move(game_obj):
 
         else:
             a.player.open_elevel = True
-            a.player.thinking = True
             DelayedSend.set_send(
                 a.active_players_spct,
                 Answer(a.player, GC.ACTION_LIST["elvl"], post).get_ret_object(),
@@ -201,6 +185,33 @@ def move(game_obj):
     return a.active_players_spct, Answer(a.player).get_ret_object()
 
 
+@App.register(GC.USER_ACTION_LIST["my_turn"])
+def my_turn(game_obj):
+    a = GameData.get_data()
+    if a.player.admin:
+        return (
+            [a.player.get_id()],
+            ErrorActAnswer("AdminCannotThrowCubic").get_ret_object(),
+        )
+    t = a.player.get_turn() + 1
+    if a.player.show_turn:
+        sec = Cubic.gen_sequence(0, t)
+        DelayedSend.set_send(
+            [a.player.get_id()],
+            Answer(a.player, GC.ACTION_LIST["cubic"], sec, True).get_ret_object(),
+        )
+    else:
+        sec = Cubic.gen_sequence(random.randint(8, 15), t)
+        DelayedSend.set_send(
+            [a.player.get_id()],
+            Answer(a.player, GC.ACTION_LIST["cubic"], sec, True).get_ret_object(),
+        )
+    return (
+        [a.player.get_id()],
+        Answer(a.player, GC.ACTION_LIST["can_throw_num"], False, True).get_ret_object(),
+    )
+
+
 @App.register(GC.USER_ACTION_LIST["cubic"])
 def cubic(game_obj):
     a = GameData.get_data()
@@ -209,46 +220,21 @@ def cubic(game_obj):
             [a.player.get_id()],
             ErrorActAnswer("AdminCannotThrowCubic").get_ret_object(),
         )
+
+    if not a.player.turn or a.player.player_state != PlayerState.set_numcubic_state():
+        return IGNORE()
     t = 0
-    send_to = []
-    if a.player.turn:  # player can move
-        if a.player.cubic_thrown or a.player.on_pen_field:
-            return (
-                [a.player.get_id()],
-                ErrorActAnswer("CubicAlreadyThrown").get_ret_object(),
-            )
-        a.player.cubic_thrown = True
-        t = random.randint(1, 6)
-        a.player.get_state().cube_point = t
-        a.player.cur_position_num += t
-        if a.player.cur_position_num > GC.GAME_CONSTANTS["FIELD_LAST_NUM"]:
-            a.player.cur_position_num = GC.GAME_CONSTANTS["FIELD_LAST_NUM"] + 1
-        a.player.can_move = True
-        send_to = a.active_players_spct
-
-    else:
-        if a.player.show_turn:
-            DelayedSend.set_send(
-                [a.player.get_id()],
-                Answer(
-                    a.player, GC.ACTION_LIST["can_throw_num"], False, True
-                ).get_ret_object(),
-            )
-            return (
-                [a.player.get_id()],
-                Answer(
-                    a.player,
-                    GC.ACTION_LIST["cubic"],
-                    Cubic.gen_sequence(0, a.player.get_turn() + 1),
-                ).get_ret_object(),
-            )
-        a.player.show_turn = True
-        t = a.player.get_turn() + 1
-        send_to = [a.player.get_id()]
-
+    a.player.cubic_thrown = True
+    t = random.randint(1, 6)
+    a.player.get_state().cube_point = t
+    a.player.cur_position_num += t
+    if a.player.cur_position_num > GC.GAME_CONSTANTS["FIELD_LAST_NUM"]:
+        a.player.cur_position_num = GC.GAME_CONSTANTS["FIELD_LAST_NUM"] + 1
+    a.player.player_state = PlayerState.set_moving_state()
     sec = Cubic.gen_sequence(random.randint(8, 15), t)
     DelayedSend.set_send(
-        send_to, Answer(a.player, GC.ACTION_LIST["cubic"], sec).get_ret_object()
+        a.active_players_spct,
+        Answer(a.player, GC.ACTION_LIST["cubic"], sec).get_ret_object(),
     )
     return (
         [a.player.get_id()],
@@ -261,18 +247,24 @@ def get_resource(game_obj):
     a = GameData.get_data()
     if not a.player.turn:
         return IGNORE()
-    if a.player.points <= 0 or a.player.open_resource:
-        DelayedSend.set_send(
-            [a.player.get_id()],
-            Answer(
-                a.player, GC.ACTION_LIST["can_take_resource"], False, True
-            ).get_ret_object(),
-        )
+    if (
+        a.player.points <= 0
+        or a.player.open_resource
+        or a.player.player_state != PlayerState.set_thinking_state()
+        or not a.player.can_take_resource
+    ):
         return [a.player.get_id()], ErrorActAnswer("YouHaveNoPoints").get_ret_object()
+    DelayedSend.set_send(
+        [a.player.get_id()],
+        Answer(
+            a.player, GC.ACTION_LIST["can_take_resource"], False, True
+        ).get_ret_object(),
+    )
     a.player.points -= 1
     a.player.open_resource = True
+    a.player.can_take_resource = False
     rs = a.player.get_resource()
-    a.player.resources.append(rs)
+    a.player.resources = rs
     return (
         a.active_players_spct,
         Answer(a.player, GC.ACTION_LIST["resource"], rs).get_ret_object(),
@@ -284,10 +276,9 @@ def ycubic(game_obj):
     a = GameData.get_data()
     if not a.player.turn:
         return IGNORE()
-    if not a.player.can_throw_yn or a.player.yncubic_thrown or a.player.can_move:
+    if not a.player.player_state == PlayerState.set_yncubic_state():
         return ([a.player.get_id()], ErrorActAnswer("CantThrowYCubic").get_ret_object())
     a.player.yncubic_thrown = True
-    a.player.can_throw_yn = False
     DelayedSend.set_send(
         [a.player.get_id()],
         Answer(a.player, GC.ACTION_LIST["can_throw_yn"], False, True).get_ret_object(),
@@ -303,26 +294,32 @@ def ycubic(game_obj):
         ).get_ret_object(),
     )
     t = t % 2
-    if a.player.on_pen_field:
-        a.player.can_move = True
+    post = a.player.cur_position_num
+    a.player.open_resource = False
+    a.player.resources = None
+    if t != 0:
+        a.player.rune = None
+        a.player.open_elevel = False
+
+    if post == 2 or post == 10 or post == 13 or post == 16 or post == 6:
+        if t == 0:
+            a.player.cur_position_num = -1 * a.player.cur_position_num
+            a.player.player_state = PlayerState.set_moving_state()
+        else:
+            a.player.player_state = PlayerState.set_numcubic_state()
+    elif post == -2 or post == -10 or post == -13 or post == -16 or post == -6:
         if t == 0:
             a.player.cur_position_num = 0
-            a.player.yn_time = None
-            a.player.back_flag = False
+            a.player.player_state = PlayerState.set_moving_state()
         else:
-            if a.player.yn_time is None:
-                a.player.cur_position_num = -1 * a.player.cur_position_num
-                a.player.yn_time = True
-            else:
-                a.player.cur_position_num = abs(a.player.cur_position_num)
-                a.player.yn_time = None
-                a.player.back_flag = True
+            a.player.open_elevel = True
+            a.player.cur_position_num = -1 * a.player.cur_position_num
+            a.player.player_state = PlayerState.set_numcubic_state()
     else:
-        if t != 0:
-            a.player.thinking = False
-            a.player.resources.clear()
-            a.player.cubic_thrown = False
-            a.player.open_elevel = False
+        if t == 0:
+            a.player.player_state = PlayerState.set_thinking_state()
+        else:
+            a.player.player_state = PlayerState.set_numcubic_state()
 
     return IGNORE()
 
@@ -331,170 +328,26 @@ def ycubic(game_obj):
 def anim_end(game_obj):
     a = GameData.get_data()
     if not a.player.turn:
+        if not a.player.show_turn:
+            a.player.show_turn = True
         return IGNORE()
-    if a.player.can_move:
+    if a.player.player_state == PlayerState.set_moving_state():
         return (
             [a.player.get_id()],
             Answer(a.player, GC.ACTION_LIST["can_move"], True, True).get_ret_object(),
         )
-    if not a.player.cubic_thrown:
+    if a.player.player_state == PlayerState.set_numcubic_state():
+        DelayedSend.set_send(
+            a.active_players_spct,
+            Answer(
+                a.player, GC.ACTION_LIST["clr_trgr_res"], True, True
+            ).get_ret_object(),
+        )
         return (
             [a.player.get_id()],
             Answer(
                 a.player, GC.ACTION_LIST["can_throw_num"], True, True
             ).get_ret_object(),
         )
+
     return IGNORE()
-
-
-@App.register(GC.ADMIN_ACTION_LIST["start"])
-def game_start(game_obj):
-    a = GameData.get_data()
-    if not a.player.admin:
-        return IGNORE()
-    game = SingletonGame.get_game()
-    if game.game_state != GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
-        return [a.player.get_id()], ErrorActAnswer("GameStarted").get_ret_object()
-    clients = game.get_all_ids()
-    game.game_state = GC.GAME_CONSTANTS["GAME_START"]
-    game.start_game()
-    ns = game.next_step()
-    if not ns:
-        game.game_state = GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
-        return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
-    cli = game.stepping_cli()
-    DelayedSend.set_send(
-        a.active_players_spct,
-        Answer(
-            cli,
-            GC.ACTION_LIST["card_data"],
-            print_step_set(game, "ИГРА НАЧАЛАСЬ! Порядок ходов:\n"),
-            lowpack=True,
-        ).get_ret_object(),
-    )
-    for c in clients:
-        game.get_player(c).show_turn = True
-    cli.cubic_thrown = False
-    DelayedSend.set_send(
-        [cli.get_id()],
-        Answer(cli, GC.ACTION_LIST["can_throw_num"], True, True).get_ret_object(),
-    )
-    return a.active_players_spct, Answer(cli, GC.ACTION_LIST["step"]).get_ret_object()
-
-
-@App.register(GC.ADMIN_ACTION_LIST["step"])
-def next_step(game_obj):
-    a = GameData.get_data()
-    if not a.player.admin:
-        return IGNORE()
-    game = SingletonGame.get_game()
-    if game.game_state == GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]:
-        return [a.player.get_id()], ErrorActAnswer("GameNotStarted").get_ret_object()
-    ns = game.next_step()
-    if not ns:
-        return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
-
-    cli = game.stepping_cli()
-    if not cli.thinking:
-        cli.cubic_thrown = False
-        cli.resources.clear()
-        cli.open_elevel = False
-        if not cli.on_pen_field:
-            DelayedSend.set_send(
-                [cli.get_id()],
-                Answer(
-                    cli, GC.ACTION_LIST["can_throw_num"], True, True
-                ).get_ret_object(),
-            )
-    cli.yncubic_thrown = False
-    return a.active_players_spct, Answer(cli, GC.ACTION_LIST["step"]).get_ret_object()
-
-
-@App.register(GC.ADMIN_ACTION_LIST["allow_yn"])
-def allow_yn(game_obj):
-    a = GameData.get_data()
-    if not a.player.admin:
-        return IGNORE()
-    game = SingletonGame.get_game()
-    cli = game.stepping_cli()
-    if cli is None:
-        return (
-            [a.player.get_id()],
-            ErrorActAnswer("NoActiveCliOrGameNotStarted").get_ret_object(),
-        )
-    if cli.penalty is not None:
-        return [a.player.get_id()], ErrorActAnswer("CliHavePenalty").get_ret_object()
-    if cli.can_move:
-        return [a.player.get_id()], ErrorActAnswer("PlayerStillMoving").get_ret_object()
-    cli.can_throw_yn = True
-    DelayedSend.set_send([a.player.get_id()], ErrorActAnswer("Done").get_ret_object())
-    return (
-        [cli.get_id()],
-        Answer(cli, GC.ACTION_LIST["can_throw_yn"], True, True).get_ret_object(),
-    )
-
-
-@App.register(GC.ADMIN_ACTION_LIST["ban_unban"])
-def bun_unban(game_obj):
-    a = GameData.get_data()
-    if not a.player.admin:
-        return IGNORE()
-    fnm = game_obj.get("fnm", None)
-    if fnm is None:
-        return IGNORE()
-    game = SingletonGame.get_game()
-    cli = game.get_player_fnum(fnm)
-    if cli is None:
-        return IGNORE()
-    if cli.penalty is None:
-        cli.penalty = GC.PENALTY_LIST["stop"]
-    elif cli.penalty == GC.PENALTY_LIST["win"]:
-        return IGNORE()
-    else:
-        cli.penalty = None
-    if cli.penalty is None:
-        return (
-            game.get_spectrators_and_ids(),
-            Answer(cli, GC.ACTION_LIST["rem_pen"]).get_ret_object(),
-        )
-    else:
-        return (game.get_spectrators_and_ids(), Answer(cli).get_ret_object())
-
-
-@App.register(GC.ADMIN_ACTION_LIST["session"])
-def session(game_obj):
-    a = GameData.get_data()
-    if not a.player.admin:
-        return IGNORE()
-    game = SingletonGame.get_game()
-    cli = game.stepping_cli()
-    if cli is None:
-        return (
-            [a.player.get_id()],
-            ErrorActAnswer("NoActiveCliOrGameNotStarted").get_ret_object(),
-        )
-    if cli.points < 3:
-        return ([a.player.get_id()], ErrorActAnswer("NotEnoughPoints").get_ret_object())
-    cli.points -= 3
-    return a.active_players_spct, Answer(cli).get_ret_object()
-
-
-@App.register(GC.ADMIN_ACTION_LIST["allow_res"])
-def allow_res(game_obj):
-    a = GameData.get_data()
-    if not a.player.admin:
-        return IGNORE()
-    game = SingletonGame.get_game()
-    cli = game.stepping_cli()
-    if cli is None:
-        return (
-            [a.player.get_id()],
-            ErrorActAnswer("NoActiveCliOrGameNotStarted").get_ret_object(),
-        )
-    if cli.points < 1:
-        return ([a.player.get_id()], ErrorActAnswer("NotEnoughPoints").get_ret_object())
-    cli.open_resource = False
-    return (
-        [cli.get_id()],
-        Answer(cli, GC.ACTION_LIST["can_take_resource"], True, True).get_ret_object(),
-    )

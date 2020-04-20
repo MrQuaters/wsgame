@@ -10,6 +10,24 @@ def to_fixed(val, cnt):
     return float(("{:." + str(cnt) + "f}").format(val))
 
 
+class PlayerState:
+    @classmethod
+    def set_numcubic_state(cls):
+        return 1
+
+    @classmethod
+    def set_moving_state(cls):
+        return 2
+
+    @classmethod
+    def set_thinking_state(cls):
+        return 3
+
+    @classmethod
+    def set_yncubic_state(cls):
+        return 0
+
+
 class State:
     def __init__(self, x, y, cp):
         self.x: float = to_fixed(x, 3)
@@ -46,18 +64,13 @@ class GameClient:
         self.resource_pool = []  # pool of cards
         self.rune_pool = []
         self.rune = None
-        self.resources = []  # resources
+        self.resources = None  # resources
         self.open_elevel = False
-        self.open_resource = True
-        self.can_move = True
+        self.open_resource = False
+        self.can_take_resource = False
         self.cubic_thrown = False  # did he throw cubic
         self.yncubic_thrown = False  # did he throw yn cubic
-        self.can_throw_yn = False
-        self.on_pen_field = False
-        self.yn_time = None
-        self.back_flag = False
-        self.thinking = False
-
+        self.player_state = PlayerState.set_numcubic_state()
         self.show_turn = False  # can show turn
         self.penalty = None  # player penalty
         self.steps_pen = 0

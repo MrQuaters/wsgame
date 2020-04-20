@@ -51,18 +51,22 @@ ACTION_LIST = {
     "card_data": "ret_card_data",
     "target_data": "ret_card_data",
     "rem_pen": "pentalty_remove",
+    "clr_trgr_res": "clear_res_targets",
+    "get_info": "queue_end",
 }
 USER_ACTION_LIST = {
     "info": "get_info",
     "reg": "add_name",
     "move": "new_position",
     "cubic": "throw_cubic",
+    "my_turn": "show_turn",
     "elvl": "get_elevel",
     "resource": "get_resource",
     "ycubic": "throw_ycubic",
     "card_data": "get_card_data",
     "target_data": "get_player_target",
     "anim_end": "animation_end",
+    "steps": "get_steps",
 }
 ANSWER_PACKAGE_NAMES = {"def": "small_pack", "big": "big_pack", "err": "error_pack"}
 ADMIN_ACTION_LIST = {
