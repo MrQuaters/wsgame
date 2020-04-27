@@ -1,1 +1,7 @@
+redis
+asyncio
+uvloop
+fastapi
+uvicorn
+aioredis
 pre-commit

@@ -297,6 +297,7 @@ def ycubic(game_obj):
     post = a.player.cur_position_num
     a.player.open_resource = False
     a.player.resources = None
+    a.player.can_take_resource = False
     if t != 0:
         a.player.rune = None
         a.player.open_elevel = False

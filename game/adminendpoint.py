@@ -33,12 +33,6 @@ def game_start(game_obj):
         game.game_state = GC.GAME_CONSTANTS["GAME_STATE_W8_CLIENTS"]
         return [a.player.get_id()], ErrorActAnswer("NoPlayers").get_ret_object()
     cli = game.stepping_cli()
-    for c in clients:
-        r = game.get_player(c)
-        r.show_turn = True
-        DelayedSend.set_send(
-            [r.get_id()], Answer(r, GC.ACTION_LIST["get_info"], True).get_ret_object()
-        )
 
     DelayedSend.set_send(
         a.active_players_spct,
@@ -49,6 +43,13 @@ def game_start(game_obj):
             lowpack=True,
         ).get_ret_object(),
     )
+
+    for c in clients:
+        r = game.get_player(c)
+        r.show_turn = True
+        DelayedSend.set_send(
+            [r.get_id()], Answer(r, GC.ACTION_LIST["get_info"], True).get_ret_object()
+        )
 
     return [a.player.get_id()], ErrorActAnswer("GameSTARTED").get_ret_object()
 
