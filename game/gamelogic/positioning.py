@@ -27,6 +27,26 @@ def is_inside(rect: [], x, y):
     return True
 
 
+def on_lane(vec: [], x):
+    fpx = vec[0][0] if vec[0][0] < vec[1][0] else vec[1][0]
+    lpx = vec[0][0] if vec[0][0] > vec[1][0] else vec[1][0]
+    if x < fpx or x > lpx:
+        return False
+    return True
+
+
+def is_inside_v2(rect: [], x, y):
+    ps = 0
+    for a in range(4):
+        if not on_lane([rect[a % 4], rect[(a + 1) % 4]], x):
+            continue
+        if not pos_point([rect[a % 4], rect[(a + 1) % 4]], x, y):
+            ps += 1
+    if ps % 2 == 0:
+        return False
+    return True
+
+
 POSITION_LIST = {
     1: [[0.413, 0.202], [0.660, 0.219], [0.592, 0.323], [0.432, 0.293]],
     2: [[0.268, 0.288], [0.412, 0.202], [0.431, 0.293], [0.327, 0.3631]],
@@ -57,4 +77,4 @@ POSITION_LIST = {
 def is_in_field_num(x, y, field_num):
     if field_num > len(POSITION_LIST):
         return False
-    return is_inside(POSITION_LIST[field_num], x, y)
+    return is_inside_v2(POSITION_LIST[field_num], x, y)
