@@ -233,8 +233,6 @@ def cubic(game_obj):
     a.player.cur_position_num += t
     if a.player.cur_position_num > GC.GAME_CONSTANTS["FIELD_LAST_NUM"] and lp < 17:
         a.player.cur_position_num = GC.GAME_CONSTANTS["FIELD_LAST_NUM"] + 1
-    elif lp == 17:
-        a.player.cur_position_num = 18
 
     a.player.player_state = PlayerState.set_moving_state()
     sec = Cubic.gen_sequence(random.randint(8, 15), t)
@@ -300,16 +298,15 @@ def ycubic(game_obj):
         ).get_ret_object(),
     )
     t = t % 2
+    a.player.clr_flag = True
     post = a.player.cur_position_num
-    a.player.open_resource = False
-    a.player.resources = None
-    a.player.can_take_resource = False
+
     if t != 0:
-        a.player.rune = None
-        a.player.open_elevel = False
+        a.player.clr_elvl_flag = True
 
     if post == 2 or post == 10 or post == 13 or post == 16 or post == 6:
         if t == 0:
+            a.player.clr_elvl_flag = False
             a.player.cur_position_num = -1 * a.player.cur_position_num
             a.player.player_state = PlayerState.set_moving_state()
         else:
@@ -319,14 +316,17 @@ def ycubic(game_obj):
             a.player.cur_position_num = 0
             a.player.player_state = PlayerState.set_moving_state()
         else:
-            a.player.open_elevel = True
             a.player.cur_position_num = -1 * a.player.cur_position_num
             a.player.player_state = PlayerState.set_numcubic_state()
     else:
         if t == 0:
             a.player.player_state = PlayerState.set_thinking_state()
         else:
-            a.player.player_state = PlayerState.set_numcubic_state()
+            if not post == 17:
+                a.player.player_state = PlayerState.set_numcubic_state()
+            else:
+                a.player.player_state = PlayerState.set_moving_state()
+                a.player.cur_position_num = 18
 
     return IGNORE()
 
@@ -338,6 +338,15 @@ def anim_end(game_obj):
         if not a.player.show_turn:
             a.player.show_turn = True
         return IGNORE()
+    if a.player.clr_flag:
+        a.player.resources = None
+        a.player.can_take_resource = False
+        a.player.clr_flag = False
+    if a.player.clr_elvl_flag:
+        a.player.rune = None
+        a.player.open_elevel = False
+        a.player.clr_elvl_flag = False
+
     if a.player.player_state == PlayerState.set_moving_state():
         return (
             [a.player.get_id()],

@@ -74,6 +74,8 @@ class GameClient:
         self.show_turn = False  # can show turn
         self.penalty = None  # player penalty
         self.steps_pen = 0
+        self.clr_flag = False
+        self.clr_elvl_flag = False
 
     def get_fnum(self):
         return self._fnum
