@@ -152,8 +152,10 @@ def move(game_obj):
     post = a.player.cur_position_num
     if is_in_field_num(x + 0.036, y, post):
         a.player.player_state = PlayerState.set_thinking_state()
-        if post == 17:
+        if post == 18:
             a.player.penalty = GC.PENALTY_LIST["win"]
+        elif post == 17:
+            pass
         elif post == 0:
             a.player.penalty = GC.PENALTY_LIST["stop"]
             a.player.cubic_thrown = False
@@ -227,9 +229,13 @@ def cubic(game_obj):
     a.player.cubic_thrown = True
     t = random.randint(1, 6)
     a.player.get_state().cube_point = t
+    lp = a.player.cur_position_num
     a.player.cur_position_num += t
-    if a.player.cur_position_num > GC.GAME_CONSTANTS["FIELD_LAST_NUM"]:
+    if a.player.cur_position_num > GC.GAME_CONSTANTS["FIELD_LAST_NUM"] and lp < 17:
         a.player.cur_position_num = GC.GAME_CONSTANTS["FIELD_LAST_NUM"] + 1
+    elif lp == 17:
+        a.player.cur_position_num = 18
+
     a.player.player_state = PlayerState.set_moving_state()
     sec = Cubic.gen_sequence(random.randint(8, 15), t)
     DelayedSend.set_send(
