@@ -2,6 +2,8 @@ import asyncio
 
 from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
+import subprocess
+import os
 
 from game.gamelogic.answers import Answer
 from game.gamelogic.gameconstants import (
@@ -15,9 +17,17 @@ from game.servicecommunicator.asynccom import SingletonAsyncServerCommunicator
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
+sp = {}
 
-@app.get("/")
-async def gt():
+
+@app.get("/open")
+async def gt(room: int):
+    cd = os.getcwd()
+    args = ["python", cd + "/roomhandler.py", "-r", str(room)]
+    sp[room] = subprocess.Popen(
+        args, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE
+    )
+    print("starting room" + str(room))
     return HTMLResponse("ok")
 
 
