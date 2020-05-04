@@ -70,12 +70,14 @@ async def cls(room: int, admin: str):
             return HTMLResponse(json.dumps(log))
     else:
         g = prc.poll()
-        if g is None and msg is None:
+        if msg is None:
             log["err1"] = "DOING SIGKILL"
             log["rc"] = g
             prc.kill()
         else:
             log["OK"] = "CLOSED OK"
+        prc.wait()
+
     log["msg"] = msg
     return HTMLResponse(json.dumps(log))
 
