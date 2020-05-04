@@ -61,7 +61,7 @@ async def cls(room: int, admin: str):
     cmd = {"action": SCC["SERV_STOP"], SCC["W8ANSWERIN"]: admin + str(room) + "close"}
     await com.push_in_channel("e" + ps.create_room_name(room), ps.parse_in(cmd))
     await com.set_expires_channel("e" + ps.create_room_name(room), 5)
-    msg = await com.listen_for_clients([admin + str(room) + "close"], 8)
+    msg = await com.listen_for_clients([admin + str(room) + "close"], 20)
     prc = sp.pop(room, None)
     if prc is None:
         log["err"] = "NoServinlocal"
@@ -70,11 +70,13 @@ async def cls(room: int, admin: str):
             return HTMLResponse(json.dumps(log))
     else:
         g = prc.poll()
-        if g is None:
+        if g is None and msg is None:
             log["err1"] = "DOING SIGKILL"
+            log["rc"] = g
             prc.kill()
         else:
             log["OK"] = "CLOSED OK"
+    log["msg"] = msg
     return HTMLResponse(json.dumps(log))
 
 

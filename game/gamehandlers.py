@@ -1,4 +1,4 @@
-from game.gamelogic.gamecl import GameData
+from game.gamelogic.gamecl import GameData, SingletonGame
 from game.gamelogic.gameconstants import (
     GET_FULL_GAME_STATE,
     SERVER_COMMUNICATING_CONSTANTS,
@@ -109,16 +109,17 @@ class ActionHandler:  # main class for worker, using routes to handle actions
                     sto = obj.pop(SERVER_COMMUNICATING_CONSTANTS["W8ANSWERIN"], None)
                     if sto is None:
                         continue
-                    gd = GameData.get_data()
-                    pl_2_disc = gd.active_players_spct()
-                    self.send(pl_2_disc, "fsd")
+                    gd = SingletonGame.get_game()
+                    pl_2_disc = gd.get_spectrators_and_ids()
                     for a in pl_2_disc:
+                        c, d = WorkerParser.KICK_PLAYER(a)
+                        self.send(c, d)
                         self.data.set_expire_chan(str(a), 5)
                     self.data.set_expire_chan(channel, 10)
                     self.data.set_expire_chan(end_loop_channel, 10)
-                    self.send([sto], "im_dead_yo!")
-                    self.data.set_expire_chan(sto, 5)
-                    return
+                    self.send([sto], "im_closed_yo!")
+                    self.data.set_expire_chan(sto, 20)
+                    exit(0)
 
             if act is None or uid is None:
                 continue
