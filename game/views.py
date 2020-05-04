@@ -4,6 +4,7 @@ from fastapi import FastAPI, WebSocket
 from fastapi.responses import HTMLResponse
 import subprocess
 import os
+import json
 
 from game.gamelogic.answers import Answer
 from game.gamelogic.gameconstants import (
@@ -11,13 +12,70 @@ from game.gamelogic.gameconstants import (
     CLIENT_DISCONNECTED,
     ACTION_LIST,
 )
+from game.gamelogic.gameconstants import SERVER_COMMUNICATING_CONSTANTS as SCC
 from game.gamelogic.parcer import Parser
 from game.helper.clientholder import SingletonClientHolder
-from game.servicecommunicator.asynccom import SingletonAsyncServerCommunicator
+from game.servicecommunicator.asynccom import (
+    SingletonAsyncServerCommunicator,
+    AsyncServiceCommunicator,
+)
 
 app = FastAPI(redoc_url=None, docs_url=None)
 
 sp = {}
+
+
+@app.get("/ping")
+async def png(room: int, admin: str):
+    retv = {
+        SCC["CHECK_IN_DICT"]: False,
+        SCC["PING_GOOD"]: False,
+        SCC["POLL_CODE"]: False,
+    }
+    prc = sp.get(room, None)
+    if prc is not None:
+        retv[SCC["CHECK_IN_DICT"]] = True
+        d = prc.poll()
+        if d is None:
+            retv[SCC["POLL_CODE"]] = True
+        else:
+            retv[SCC["POLL_CODE"]] = d
+    com = AsyncServiceCommunicator()
+    await com.start()
+    ps = Parser()
+    cmd = {"action": SCC["PING_COMMAND"], SCC["W8ANSWERIN"]: admin + str(room) + "ping"}
+    await com.push_in_channel("e" + ps.create_room_name(room), ps.parse_in(cmd))
+    await com.set_expires_channel("e" + ps.create_room_name(room), 5)
+    msg = await com.listen_for_clients([admin + str(room) + "ping"], 8)
+    if msg is not None:
+        retv[SCC["PING_GOOD"]] = True
+    return HTMLResponse(json.dumps(retv))
+
+
+@app.get("/close")
+async def cls(room: int, admin: str):
+    log = {}
+    com = AsyncServiceCommunicator()
+    await com.start()
+    ps = Parser()
+    cmd = {"action": SCC["SERV_STOP"], SCC["W8ANSWERIN"]: admin + str(room) + "close"}
+    await com.push_in_channel("e" + ps.create_room_name(room), ps.parse_in(cmd))
+    await com.set_expires_channel("e" + ps.create_room_name(room), 5)
+    msg = await com.listen_for_clients([admin + str(room) + "close"], 8)
+    prc = sp.pop(room, None)
+    if prc is None:
+        log["err"] = "NoServinlocal"
+        if msg is None:
+            log["CRITICAL"] = "CAN NOT STOP ROOM"
+            return HTMLResponse(json.dumps(log))
+    else:
+        g = prc.poll()
+        if g is None:
+            log["err1"] = "DOING SIGKILL"
+            prc.kill()
+        else:
+            log["OK"] = "CLOSED OK"
+    return HTMLResponse(json.dumps(log))
 
 
 @app.get("/open")
@@ -25,7 +83,10 @@ async def gt(room: int):
     cd = os.getcwd()
     args = ["python", cd + "/roomhandler.py", "-r", str(room)]
     sp[room] = subprocess.Popen(
-        args, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE
+        args,
+        stderr=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
     )
     print("starting room" + str(room))
     return HTMLResponse("ok")

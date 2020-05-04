@@ -38,6 +38,9 @@ class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
     async def push_in_channel(self, ch, msg) -> None:
         await self.re.rpush(ch, msg)
 
+    async def set_expires_channel(self, ch, exp) -> None:
+        await self.re.expire(ch, exp)
+
 
 class SingletonAsyncServerCommunicator:
     __instanced = None

@@ -1,5 +1,8 @@
 from game.gamelogic.gamecl import GameData
-from game.gamelogic.gameconstants import GET_FULL_GAME_STATE
+from game.gamelogic.gameconstants import (
+    GET_FULL_GAME_STATE,
+    SERVER_COMMUNICATING_CONSTANTS,
+)
 from game.gamelogic.parcer import WorkerParser
 from game.servicecommunicator.synccom import SyncServiceCommunicator
 
@@ -89,12 +92,33 @@ class ActionHandler:  # main class for worker, using routes to handle actions
         while True:
             channel, msg = self.data.pull_from_work_channel(0)
 
-            if channel == end_loop_channel:
-                return
             try:
                 act, uid, obj = parser.parse_in(msg)
             except BaseException:
                 continue
+
+            if channel == end_loop_channel:
+                if act == SERVER_COMMUNICATING_CONSTANTS["PING_COMMAND"]:
+                    sto = obj.pop(SERVER_COMMUNICATING_CONSTANTS["W8ANSWERIN"], None)
+                    if sto is None:
+                        continue
+                    self.send([sto], "im_allive_yo!")
+                    self.data.set_expire_chan(sto, 5)
+                    continue
+                if act == SERVER_COMMUNICATING_CONSTANTS["SERV_STOP"]:
+                    sto = obj.pop(SERVER_COMMUNICATING_CONSTANTS["W8ANSWERIN"], None)
+                    if sto is None:
+                        continue
+                    gd = GameData.get_data()
+                    pl_2_disc = gd.active_players_spct()
+                    self.send(pl_2_disc, "fsd")
+                    for a in pl_2_disc:
+                        self.data.set_expire_chan(str(a), 5)
+                    self.data.set_expire_chan(channel, 10)
+                    self.data.set_expire_chan(end_loop_channel, 10)
+                    self.send([sto], "im_dead_yo!")
+                    self.data.set_expire_chan(sto, 5)
+                    return
 
             if act is None or uid is None:
                 continue

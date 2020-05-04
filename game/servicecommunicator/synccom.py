@@ -40,6 +40,9 @@ class SyncServiceCommunicator(BaseSyncServiceCommunicator):
     def push_to_client_channel(self, client, msg) -> int:
         return self._re.rpush(client, msg)
 
+    def set_expire_chan(self, key, time) -> None:
+        return self._re.expire(key, time)
+
     def queue_len(self, client) -> int:
         return self._re.llen(client)
 

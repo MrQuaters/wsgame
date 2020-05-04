@@ -7,6 +7,14 @@ CLIENT_CONNECTED = '{"action" : "' + CLIENT_CONNECTED_STR + '"}'
 CLIENT_DISCONNECTED_STR = "disconnected"
 CLIENT_DISCONNECTED = '{"action" : "' + CLIENT_DISCONNECTED_STR + '"}'
 
+SERVER_COMMUNICATING_CONSTANTS = {
+    "CHECK_IN_DICT": "in_local_server_table",
+    "PING_GOOD": "pingable",
+    "POLL_CODE": "local_server_ext_code",
+    "PING_COMMAND": "gPIng",
+    "W8ANSWERIN": "sendto",
+    "SERV_STOP": "stopw",
+}
 
 CLIENT_POSITIONING = {
     "CLIENT_DEFAULT_X": 0.8,
