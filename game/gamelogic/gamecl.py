@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import random
 from typing import Optional
 
@@ -49,9 +50,8 @@ class GameClient:
         self._turn = turn  # game num when he goes
         self._fnum = fnum  # number of point
         self._state = State(
-            CLIENT_POSITIONING["CLIENT_DEFAULT_X"]
-            + 0.01 * (uid % GAME_CONSTANTS["MAX_PLAYERS_IN_ROOM"]),
-            CLIENT_POSITIONING["CLIENT_DEFAULT_Y"],
+            0.806 + 0.12 * math.cos(math.pi / 3 * fnum),
+            0.165 + 0.12 * math.sin(math.pi / 3 * fnum),
             -1,
         )
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]  # player status

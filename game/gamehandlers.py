@@ -103,7 +103,7 @@ class ActionHandler:  # main class for worker, using routes to handle actions
                     if sto is None:
                         continue
                     self.send([sto], "im_allive_yo!")
-                    self.data.set_expire_chan(sto, 5)
+                    self.data.set_expire_chan(str(sto), 5)
                     continue
                 if act == SERVER_COMMUNICATING_CONSTANTS["SERV_STOP"]:
                     sto = obj.pop(SERVER_COMMUNICATING_CONSTANTS["W8ANSWERIN"], None)
@@ -115,9 +115,8 @@ class ActionHandler:  # main class for worker, using routes to handle actions
                         c, d = WorkerParser.KICK_PLAYER(a)
                         self.send(c, d)
                         self.data.set_expire_chan(str(a), 5)
-                    self.data.set_expire_chan(channel, 60)
                     self.send([sto], "im_closed_yo!")
-                    self.data.set_expire_chan(sto, 20)
+                    self.data.set_expire_chan(str(sto), 20)
                     exit(0)
 
             if act is None or uid is None:

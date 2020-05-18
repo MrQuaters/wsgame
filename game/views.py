@@ -79,6 +79,7 @@ async def cls(room: int, admin: str):
         prc.wait()
 
     log["msg"] = msg
+    await com.set_expires_channel(ps.create_room_name(room), 180)
     return HTMLResponse(json.dumps(log))
 
 

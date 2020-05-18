@@ -163,6 +163,7 @@ def move(game_obj):
             a.player.open_elevel = False
             a.player.resources = None
             a.player.open_resource = False
+            a.player.player_state = PlayerState.set_numcubic_state()
 
         elif post == -2 or post == -10 or post == -13 or post == -16 or post == -6:
             rn = a.player.get_rune()
