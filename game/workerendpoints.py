@@ -15,6 +15,18 @@ def IGNORE():
     return [], " "
 
 
+def send_move_data(player, lp):
+    adm = SingletonGame.get_game().get_admin()
+    if adm is not None:
+        ra = {
+            "fn": player.get_fnum(),
+            "nm": player.name,
+            "lstep": lp,
+            "nstep": player.cur_position_num,
+        }
+        DelayedSend.set_send([adm.get_id()], ErrorActAnswer(ra).get_ret_object())
+
+
 @App.register_middlepoint(GC.CLIENT_CONNECTED_STR)  # conn handler
 def conn(uid: int, game_obj):
     game = SingletonGame.get_game()
@@ -241,6 +253,7 @@ def cubic(game_obj):
         a.active_players_spct,
         Answer(a.player, GC.ACTION_LIST["cubic"], sec).get_ret_object(),
     )
+    send_move_data(a.player, lp)
     return (
         [a.player.get_id()],
         Answer(a.player, GC.ACTION_LIST["can_throw_num"], False, True).get_ret_object(),
@@ -328,7 +341,7 @@ def ycubic(game_obj):
             else:
                 a.player.player_state = PlayerState.set_moving_state()
                 a.player.cur_position_num = 18
-
+    send_move_data(a.player, post)
     return IGNORE()
 
 

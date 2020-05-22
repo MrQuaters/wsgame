@@ -50,8 +50,8 @@ class GameClient:
         self._turn = turn  # game num when he goes
         self._fnum = fnum  # number of point
         self._state = State(
-            0.806 + 0.12 * math.cos(math.pi / 3 * fnum),
-            0.165 + 0.12 * math.sin(math.pi / 3 * fnum),
+            0.78 + 0.05 * math.cos(math.pi / 3 * fnum),
+            0.21 + 0.05 * math.sin(math.pi / 3 * fnum),
             -1,
         )
         self.status = GAME_CONSTANTS["PLAYER_CONNECTED"]  # player status
@@ -154,6 +154,11 @@ class Game:
     def get_player_fnum(self, fnum) -> Optional[GameClient]:
         for a in self._clients:
             if self._clients[a].get_fnum() == fnum:
+                return self._clients[a]
+
+    def get_admin(self) -> Optional[GameClient]:
+        for a in self._clients:
+            if self._clients[a].admin:
                 return self._clients[a]
 
     def disconnect_player(self, uid: int):
