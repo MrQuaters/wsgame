@@ -6,4 +6,3 @@ class Game:
         to = ["cli"]
         retmsg = msg
         return to, retmsg
-

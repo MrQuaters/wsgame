@@ -9,7 +9,7 @@ class BaseClientHolder:
     def task_to_add_client(self, cli, data) -> None:
         pass
 
-    def task_to_del_client(self, cli)-> None:
+    def task_to_del_client(self, cli) -> None:
         pass
 
     def apply_changes(self) -> None:
@@ -23,31 +23,30 @@ class ClientHolder(BaseClientHolder):
     def __init__(self):
         self._clients = {}
         self._clients_ids = []
-        self._clients_to_del = []
-        self._clients_to_add = {}
+        self._stack = []
         self._changed = False
 
     def get_clients_ids(self) -> List:
         return self._clients_ids[:]
 
     def task_to_add_client(self, cli, data) -> None:
-        self._clients_to_add[cli] = data
+        self._stack.append([cli, data, "add"])
         self._changed = True
 
     def task_to_del_client(self, cli) -> None:
-        self._clients_to_del.append(cli)
+        self._stack.append([cli, None, "del"])
         self._changed = True
 
     def apply_changes(self) -> None:
         if not self._changed:
             return
 
-        for cli, val in self._clients_to_add.items():
-            self._clients[cli] = val
-        self._clients_to_add.clear()
-        for cli in self._clients_to_del:
-            self._clients.pop(cli, None)
-        self._clients_to_del.clear()
+        for d in self._stack:
+            if d[2] == "del":
+                self._clients.pop(d[0], None)
+            else:
+                self._clients[d[0]] = d[1]
+        self._stack.clear()
         self._clients_ids.clear()
         for key in self._clients:
             self._clients_ids.append(key)

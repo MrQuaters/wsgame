@@ -1,13 +1,9 @@
 from __future__ import annotations
 import aioredis
 import asyncio
+from .serviceconstants import WORKERS_CHANNEL, SAFE_OFF_WORKERS, REDIS_ADDRESS
 
 from typing import Optional
-
-
-WORKERS_CHANNEL = "workchannel"
-SAFE_OFF_WORKERS = "endchannel"
-REDIS_ADDRESS = "redis://localhost"
 
 
 class BaseAsyncServiceCommunicator:
@@ -27,7 +23,7 @@ class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
 
     async def start(self):
         if not self.iscon:
-            self.re = await aioredis.create_redis(REDIS_ADDRESS, encoding='UTF-8', db=0)
+            self.re = await aioredis.create_redis(REDIS_ADDRESS, encoding="UTF-8", db=0)
             self.iscon = True
 
     async def listen_for_clients(self, cli, timeout) -> Optional[tuple]:
@@ -37,11 +33,18 @@ class AsyncServiceCommunicator(BaseAsyncServiceCommunicator):
         await self.re.rpush(WORKERS_CHANNEL, msg)
 
     async def pull_from_work_channel(self, timeout) -> Optional[tuple]:
-        return await self.re.blpop(WORKERS_CHANNEL, timeout=timeout)
+        return await self.re.blpop([WORKERS_CHANNEL, SAFE_OFF_WORKERS], timeout=timeout)
+
+    async def push_in_channel(self, ch, msg) -> None:
+        await self.re.rpush(ch, msg)
+
+    async def set_expires_channel(self, ch, exp) -> None:
+        await self.re.expire(ch, exp)
 
 
-class SingletonAsyncServerCommunicator():
+class SingletonAsyncServerCommunicator:
     __instanced = None
+
     @classmethod
     async def get_communicator(cls) -> AsyncServiceCommunicator:
         if SingletonAsyncServerCommunicator.__instanced is None:
@@ -52,6 +55,7 @@ class SingletonAsyncServerCommunicator():
                 await asyncio.sleep(0.1)
 
         return SingletonAsyncServerCommunicator.__instanced
+
 
 class CallFunc:
     def __init__(self, fun, *args, **kwargs):
@@ -91,6 +95,3 @@ class SafeInit:
     def loop_run_forever(self, loop):
         loop.create_task(self._runblock(loop))
         loop.run_forever()
-
-
-
